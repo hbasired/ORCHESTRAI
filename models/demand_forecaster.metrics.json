@@ -1,0 +1,17 @@
+{
+  "mae": 32.909,
+  "rmse": 52.369,
+  "mape": 21.05,
+  "persistence_mae": 80.901,
+  "seasonal_naive_mae": 81.098,
+  "improvement_over_persistence_pct": 59.32,
+  "best_config": {
+    "hidden": 128,
+    "layers": 1,
+    "lr": 0.0005,
+    "window": 24,
+    "dropout": 0.2
+  },
+  "use_log": true,
+  "dataset": "UCI Bike Sharing #275 (v2: cyclical+log+gridsearch, chronological split, no leakage)"
+}

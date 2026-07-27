@@ -1,0 +1,107 @@
+{
+  "model": "rul_transformer_cmapss",
+  "stage": 8,
+  "trained_at": "2026-06-14T03:06:14Z",
+  "task": "remaining-useful-life (cycles) on C-MAPSS FD001 (KB_25 step 1 \u2014 PREDICT, deepened)",
+  "framework": "torch CPU Transformer encoder (self-attention over a 30-cycle, 14-sensor window)",
+  "dataset": "NASA C-MAPSS FD001 (Saxena & Goebel 2008); 100 train / 100 test engines; real benchmark",
+  "data_provenance": "downloaded from public mirrors (recorded), unmodified; cached under data/datasets/cmapss/",
+  "mirrors": [
+    "https://raw.githubusercontent.com/jiaxiang-cheng/PyTorch-Transformer-for-RUL-Prediction/main/CMAPSSData",
+    "https://raw.githubusercontent.com/LahiruJayasinghe/RUL-Net/master/CMAPSSData"
+  ],
+  "preprocessing": {
+    "sensors": [
+      "s2",
+      "s3",
+      "s4",
+      "s7",
+      "s8",
+      "s9",
+      "s11",
+      "s12",
+      "s13",
+      "s14",
+      "s15",
+      "s17",
+      "s20",
+      "s21"
+    ],
+    "window": 30,
+    "rul_cap": 125.0,
+    "normalisation": "per-sensor min-max fit on train only",
+    "n_train_windows": 17731
+  },
+  "hyperparameters": {
+    "d_model": 64,
+    "nhead": 4,
+    "num_layers": 2,
+    "dim_feedforward": 128,
+    "dropout": 0.1,
+    "lr": 0.001,
+    "epochs": 40,
+    "batch_size": 512,
+    "seed": 8,
+    "scheduler": "cosine",
+    "loss": "MSE",
+    "head_bias_warmstart": "mean train RUL"
+  },
+  "n_train_windows": 15071,
+  "n_val_windows": 2660,
+  "n_test_engines": 100,
+  "val_curve": [
+    {
+      "epoch": 1,
+      "val_rmse": 39.515
+    },
+    {
+      "epoch": 5,
+      "val_rmse": 17.251
+    },
+    {
+      "epoch": 10,
+      "val_rmse": 13.833
+    },
+    {
+      "epoch": 15,
+      "val_rmse": 13.382
+    },
+    {
+      "epoch": 20,
+      "val_rmse": 14.083
+    },
+    {
+      "epoch": 25,
+      "val_rmse": 13.214
+    },
+    {
+      "epoch": 30,
+      "val_rmse": 13.177
+    },
+    {
+      "epoch": 35,
+      "val_rmse": 13.17
+    },
+    {
+      "epoch": 40,
+      "val_rmse": 13.174
+    }
+  ],
+  "best_val_rmse": 13.17,
+  "test_rmse": 13.803,
+  "test_nasa_score": 372.3,
+  "naive_baseline_test_rmse": 40.548,
+  "naive_baseline_nasa_score": 18365.5,
+  "improvement_vs_baseline_pct": 66.0,
+  "beats_baseline": true,
+  "literature_fd001_test_rmse_cited_not_reproduced": {
+    "CNN (Babu 2016)": 18.45,
+    "LSTM (Zheng 2017)": 16.14,
+    "DCNN (Li 2018)": 12.61,
+    "AGCNN (Liu 2020)": 12.42,
+    "Transformer (Mo 2021)": 11.27
+  },
+  "honest_note": "real public benchmark; RMSE/score computed once on the official 100 test engines after best-val model selection (no test peeking). Published SOTA on FD001 is ~11-13 RMSE (cited, not reproduced); our number is reported as-measured. Generalisation to a real fleet still requires re-fit on real telemetry (G-035).",
+  "license": "Apache-2.0 (project code); dataset is NASA public-domain",
+  "reproduce": "python training/stage_08_world_model/train_cmapss.py --epochs 40 --batch 512"
+}

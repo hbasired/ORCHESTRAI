@@ -1,0 +1,172 @@
+{
+  "model": "defect_classifier",
+  "stage": 9,
+  "arch": "resnet18 (ImageNet) transfer learning",
+  "trained_at": "2026-06-14T07:42:21Z",
+  "task": "6-class steel-surface defect classification (NEU-CLS) \u2014 Stage 9 deepened (transfer learning)",
+  "dataset": "newguyme/neu_cls (real NEU-CLS benchmark; ~1800 imgs, 6 classes)",
+  "img_size": 128,
+  "rgb": true,
+  "normalisation": "ImageNet mean/std",
+  "finetune": "ResNet18 pretrained; layer4 + fc unfrozen (backbone frozen); light H/V-flip augmentation",
+  "hyperparameters": {
+    "epochs": 12,
+    "batch_size": 32,
+    "lr": 0.0005,
+    "seed": 9,
+    "val_frac": 0.15,
+    "scheduler": "cosine"
+  },
+  "n_train": 978,
+  "n_val": 174,
+  "n_test": 288,
+  "val_curve": [
+    {
+      "epoch": 1,
+      "val_acc": 0.977
+    },
+    {
+      "epoch": 2,
+      "val_acc": 0.9885
+    },
+    {
+      "epoch": 3,
+      "val_acc": 0.9943
+    },
+    {
+      "epoch": 4,
+      "val_acc": 0.9943
+    },
+    {
+      "epoch": 5,
+      "val_acc": 1.0
+    },
+    {
+      "epoch": 6,
+      "val_acc": 0.9943
+    },
+    {
+      "epoch": 7,
+      "val_acc": 0.9943
+    },
+    {
+      "epoch": 8,
+      "val_acc": 0.9943
+    },
+    {
+      "epoch": 9,
+      "val_acc": 0.9943
+    },
+    {
+      "epoch": 10,
+      "val_acc": 0.9943
+    },
+    {
+      "epoch": 11,
+      "val_acc": 0.9943
+    },
+    {
+      "epoch": 12,
+      "val_acc": 0.9943
+    }
+  ],
+  "best_val_acc": 1.0,
+  "test_accuracy": 0.9931,
+  "macro_f1": 0.9931,
+  "majority_baseline": 0.1667,
+  "per_class": {
+    "class_0": {
+      "precision": 0.98,
+      "recall": 1.0,
+      "f1": 0.99
+    },
+    "class_1": {
+      "precision": 1.0,
+      "recall": 0.979,
+      "f1": 0.989
+    },
+    "class_2": {
+      "precision": 1.0,
+      "recall": 0.979,
+      "f1": 0.989
+    },
+    "class_3": {
+      "precision": 0.98,
+      "recall": 1.0,
+      "f1": 0.99
+    },
+    "class_4": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "class_5": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      48,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      47,
+      0,
+      1,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      47,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      48,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      48,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      48
+    ]
+  ],
+  "confusion_labels": [
+    "class_0",
+    "class_1",
+    "class_2",
+    "class_3",
+    "class_4",
+    "class_5"
+  ],
+  "prev_tiny_cnn_test_accuracy": 0.8819,
+  "train_seconds": 260.9,
+  "honest_note": "Transfer learning (pretrained ResNet18) on the REAL NEU-CLS benchmark; SAME held-out split as the tiny-CNN baseline (no leakage). NEU-CLS steel surfaces are a PROXY for real line/warehouse imagery \u2014 re-fit before pilot (G-035).",
+  "license": "Apache-2.0 (project code); NEU-CLS public benchmark; ResNet18 weights torchvision (BSD)",
+  "reproduce": "python training/stage_09_defect/train_transfer.py --epochs 12 --img 128"
+}

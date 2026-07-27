@@ -1,0 +1,42 @@
+{
+  "arch": "XGBoost",
+  "features": [
+    "Type_ord",
+    "Air temperature [K]",
+    "Process temperature [K]",
+    "Rotational speed [rpm]",
+    "Torque [Nm]",
+    "Tool wear [min]",
+    "temp_diff",
+    "power_w"
+  ],
+  "type_encoding": {
+    "L": 0,
+    "M": 1,
+    "H": 2
+  },
+  "threshold_f1": 0.7451,
+  "threshold_recall80": 0.779,
+  "task": "per-snapshot failure-risk (tabular)",
+  "seed": 42,
+  "scaler_mean": [
+    0.4982857142857143,
+    300.0143569641113,
+    310.0066287362235,
+    1539.2374285714286,
+    40.00130000083787,
+    107.62357142857142,
+    9.992271430083683,
+    6282.742984218053
+  ],
+  "scaler_scale": [
+    0.6718821568199618,
+    2.0025310307879294,
+    1.481531716969436,
+    180.22465480366995,
+    10.005300455135625,
+    63.859344445109805,
+    0.9990732690011731,
+    1071.3094095257236
+  ]
+}

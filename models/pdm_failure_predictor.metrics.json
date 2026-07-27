@@ -1,0 +1,10 @@
+{
+  "roc_auc": 0.9713,
+  "pr_auc": 0.847,
+  "threshold_f1": 0.7451,
+  "threshold_recall80": 0.779,
+  "test_positive_rate": 0.034,
+  "n_test": 1500,
+  "dataset": "AI4I 2020 (XGBoost, clean stratified split, no leakage)",
+  "model": "xgboost"
+}

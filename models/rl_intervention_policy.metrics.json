@@ -1,0 +1,155 @@
+{
+  "model": "rl_intervention_policy",
+  "stage": 7,
+  "trained_at": "2026-06-13T08:42:48Z",
+  "framework": "from-scratch PPO (torch CPU); no SB3/gymnasium",
+  "algorithm": "PPO-clip + GAE-lambda, shared-trunk actor-critic MLP",
+  "hyperparameters": {
+    "obs_dim": 51,
+    "act_dim": 11,
+    "hidden": 64,
+    "lr": 0.0005,
+    "gamma": 0.99,
+    "gae_lambda": 0.95,
+    "clip_eps": 0.2,
+    "value_coef": 0.5,
+    "entropy_coef": 0.003,
+    "epochs_per_update": 4,
+    "minibatch_size": 128,
+    "max_grad_norm": 0.5,
+    "seed": 7
+  },
+  "env": {
+    "sim_hours": 2.0,
+    "decision_interval_s": 90.0,
+    "crew_capacity": 1,
+    "n_cracks": 5,
+    "crack_eta_minutes": 12.0,
+    "throughput_reward_per_unit": 0.02,
+    "breakdown_penalty": 50.0,
+    "maintenance_step_cost": 0.1,
+    "invalid_action_cost": 0.05,
+    "risk_exposure_cost": 2.0,
+    "use_predictor": false
+  },
+  "total_timesteps": 24000,
+  "train_seconds": 254.2,
+  "episodes": 951,
+  "training_return_first10_mean": -160.8,
+  "training_return_last10_mean": -134.04,
+  "training_learned": true,
+  "return_curve": [
+    {
+      "update": 1,
+      "recent_return": -150.06,
+      "entropy": 2.387,
+      "policy_loss": -0.13
+    },
+    {
+      "update": 2,
+      "recent_return": -143.96,
+      "entropy": 2.375,
+      "policy_loss": -0.0094
+    },
+    {
+      "update": 3,
+      "recent_return": -121.3,
+      "entropy": 2.357,
+      "policy_loss": 0.0085
+    },
+    {
+      "update": 4,
+      "recent_return": -164.11,
+      "entropy": 2.349,
+      "policy_loss": 0.0003
+    },
+    {
+      "update": 5,
+      "recent_return": -150.64,
+      "entropy": 2.311,
+      "policy_loss": -0.0834
+    },
+    {
+      "update": 6,
+      "recent_return": -127.32,
+      "entropy": 2.326,
+      "policy_loss": 0.0685
+    },
+    {
+      "update": 7,
+      "recent_return": -109.12,
+      "entropy": 2.301,
+      "policy_loss": 0.0086
+    },
+    {
+      "update": 8,
+      "recent_return": -118.28,
+      "entropy": 2.277,
+      "policy_loss": -0.0176
+    },
+    {
+      "update": 9,
+      "recent_return": -131.4,
+      "entropy": 2.273,
+      "policy_loss": 0.2267
+    },
+    {
+      "update": 10,
+      "recent_return": -127.85,
+      "entropy": 2.262,
+      "policy_loss": -0.1724
+    },
+    {
+      "update": 11,
+      "recent_return": -134.94,
+      "entropy": 2.287,
+      "policy_loss": -0.105
+    },
+    {
+      "update": 12,
+      "recent_return": -134.04,
+      "entropy": 2.234,
+      "policy_loss": 0.0314
+    }
+  ],
+  "eval_seeds": [
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "eval": {
+    "ppo_greedy": {
+      "mean_return": -236.88,
+      "mean_crack_breakdowns": 3.167,
+      "mean_breakdowns_prevented": 1.833,
+      "mean_cracks_injected": 5.0
+    },
+    "rules_priority": {
+      "mean_return": -18.83,
+      "mean_crack_breakdowns": 0.0,
+      "mean_breakdowns_prevented": 5.0,
+      "mean_cracks_injected": 5.0
+    },
+    "rules_greedy": {
+      "mean_return": -18.83,
+      "mean_crack_breakdowns": 0.0,
+      "mean_breakdowns_prevented": 5.0,
+      "mean_cracks_injected": 5.0
+    },
+    "no_intervention": {
+      "mean_return": -316.71,
+      "mean_crack_breakdowns": 4.333,
+      "mean_breakdowns_prevented": 0.667,
+      "mean_cracks_injected": 5.0
+    }
+  },
+  "ppo_beats_rules_on_crack_prevention": false,
+  "default_chooser": "rules_priority",
+  "honest_finding": "At v0 scope (single intervention type, single crew, uniform crack ETA) the rule chooser is near-optimal and PPO does not beat it; per the 'better policy wins' rule the rules remain the default. The PPO model + safety shield ship as the learnable substrate for Stage 8's richer recovery action space. Training return improved over the run (pipeline learns).",
+  "data_provenance": "Synthetic SimPy plant (KB_05). No external dataset. Risk signal = ground-truth crack_proximity in training; failure-predictor p_fail at inference (documented gap).",
+  "license": "Apache-2.0 (project)",
+  "reproduce": "python training/stage_07_rl_intervention/train.py --config training/stage_07_rl_intervention/config.yaml"
+}

@@ -1,0 +1,69 @@
+{
+  "model": "world_model_ttf",
+  "stage": 8,
+  "trained_at": "2026-06-13T12:40:35Z",
+  "task": "time-to-failure (minutes) forecasting from a telemetry window (KB_25 step 1, G-019)",
+  "framework": "torch CPU LSTM regressor; SimWorld rollouts; no external dataset",
+  "window_len": 6,
+  "features": [
+    "air_temp_k",
+    "process_temp_k",
+    "rot_speed_rpm",
+    "torque_nm",
+    "tool_wear_min"
+  ],
+  "hyperparameters": {
+    "hidden": 48,
+    "num_layers": 1,
+    "dropout": 0.1,
+    "lr": 0.003,
+    "epochs": 60,
+    "batch_size": 64,
+    "seed": 8
+  },
+  "n_train": 3251,
+  "n_val": 852,
+  "train_seconds": 35.9,
+  "val_curve": [
+    {
+      "epoch": 1,
+      "val_mae_min": 2.018
+    },
+    {
+      "epoch": 10,
+      "val_mae_min": 0.714
+    },
+    {
+      "epoch": 20,
+      "val_mae_min": 0.193
+    },
+    {
+      "epoch": 30,
+      "val_mae_min": 0.117
+    },
+    {
+      "epoch": 40,
+      "val_mae_min": 0.068
+    },
+    {
+      "epoch": 50,
+      "val_mae_min": 0.109
+    },
+    {
+      "epoch": 60,
+      "val_mae_min": 0.067
+    }
+  ],
+  "ttf_range_minutes": [
+    0.3,
+    16.0
+  ],
+  "learned_val_mae_min": 0.067,
+  "naive_baseline_mae_min": 2.979,
+  "improvement_vs_baseline_pct": 97.8,
+  "beats_baseline": true,
+  "honest_note": "eta is randomised so TTF is under-determined by telemetry (which reflects proximity, not absolute time); the model learns EXPECTED TTF and beats the mean-TTF baseline by reading degradation level. Proxy/sim only (G-035). No external dataset; no fabrication.",
+  "data_provenance": "synthetic SimPy plant (KB_05); ground-truth TTF from the sim crack schedule",
+  "license": "Apache-2.0 (project)",
+  "reproduce": "python training/stage_08_world_model/train.py --config training/stage_08_world_model/config.yaml"
+}
