@@ -1,0 +1,80 @@
+{
+  "scenario": "capacity-1 maintenance crew, 5 cracks, 2.0 sim-h, event-driven",
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49
+  ],
+  "paired_crn": true,
+  "arms": {
+    "no_intervention": {
+      "mean_crack_breakdowns": 4.0,
+      "crack_breakdowns_ci95": 0.524,
+      "mean_breakdowns_prevented": 1.0,
+      "prevented_ci95": 0.524,
+      "mean_return": -285.97,
+      "return_ci95": 38.13,
+      "per_seed_breakdowns": [
+        4,
+        4,
+        3,
+        4,
+        5,
+        3,
+        5,
+        4
+      ]
+    },
+    "rules_priority": {
+      "mean_crack_breakdowns": 0.375,
+      "crack_breakdowns_ci95": 0.359,
+      "mean_breakdowns_prevented": 4.625,
+      "prevented_ci95": 0.359,
+      "mean_return": -39.82,
+      "return_ci95": 23.7,
+      "per_seed_breakdowns": [
+        0,
+        0,
+        1,
+        0,
+        1,
+        0,
+        0,
+        1
+      ]
+    },
+    "ppo_shield": {
+      "mean_crack_breakdowns": 0.875,
+      "crack_breakdowns_ci95": 0.245,
+      "mean_breakdowns_prevented": 4.125,
+      "prevented_ci95": 0.245,
+      "mean_return": -118.7,
+      "return_ci95": 18.83,
+      "per_seed_breakdowns": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1
+      ]
+    }
+  },
+  "paired_difference": {
+    "metric": "ppo_breakdowns_minus_rules_breakdowns (paired, same seeds)",
+    "mean_diff": 0.5,
+    "ci95": 0.37,
+    "interpretation": "negative => PPO had FEWER breakdowns than rules; CI spanning 0 => no significant difference"
+  },
+  "ppo_available": true,
+  "ppo_beats_rules_on_crack_prevention": false,
+  "default_chooser": "rules",
+  "honest_finding": "Rules are near-optimal at v0 scope. PPO+shield does NOT beat the rules; rules remain the default chooser. The safety shield guarantees PPO is at least as safe; PPO ships as the learnable substrate for Stage 8."
+}

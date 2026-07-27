@@ -1,0 +1,8 @@
+# Placeholder. Stage 4+ lands Colab/Kaggle notebooks here, one per model:
+#   - cnn_defect_neu_det.ipynb       (Stage 5)
+#   - m5_forecast.ipynb              (Stage 6)
+#   - ppo_navigation_isaac_sim.ipynb (Stage 7)
+#   - lstm_world_model.ipynb         (Stage 8)
+#   - ...
+# Each notebook produces a (.pt, .metrics.json, .card.md) triple and a
+# decision log entry in compliance/decision-logs/.

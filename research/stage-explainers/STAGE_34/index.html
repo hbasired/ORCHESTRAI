@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stage 34 — Frontend Real-Data Wiring + Honesty Cleanup</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--border:#30363d;--text:#e6edf3;
+        --muted:#9da7b3;--accent:#58a6ff;--green:#3fb950;--amber:#d29922;--red:#f85149;--purple:#bc8cff}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.65}
+  .wrap{max-width:1060px;margin:0 auto;padding:32px 24px 80px}
+  header{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:28px}
+  h1{font-size:1.5rem;margin:0 0 8px} h2{font-size:1.2rem;margin:34px 0 12px;padding-top:18px;border-top:1px solid var(--border);color:var(--accent)}
+  .sub{color:var(--muted);font-size:.95rem}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.83rem}
+  th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--accent)} tr:nth-child(even) td{background:var(--panel)}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin:14px 0}
+  .verdict{border-left:4px solid var(--accent)} .good{border-left:4px solid var(--green)} .warn{border-left:4px solid var(--amber)}
+  code{background:var(--panel2);padding:1px 6px;border-radius:4px;font-size:.85em}
+  .tag{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.72rem;font-weight:600;margin-right:4px}
+  .ok{background:#1f3d2b;color:var(--green)}
+  ul{padding-left:22px} li{margin:5px 0} a{color:var(--accent)} .big{font-size:1.05rem;font-weight:700}
+  .kpi{display:inline-block;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;margin:5px 8px 5px 0;text-align:center}
+  .kpi b{display:block;font-size:1.3rem;color:var(--accent)} .kpi span{font-size:.72rem;color:var(--muted)}
+  .footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Stage 34 — Frontend Real-Data Wiring + Honesty Cleanup <span class="tag ok">BUILD INCREMENT</span></h1>
+  <div class="sub">The last frontend fabrications removed, the last type-drift fixed, and strict build-time
+  type-checking turned back on. The CTO-#6 frontend cleanup. 2026-07-13 · research §45 · closes G-047 + G-032.</div>
+</header>
+
+<div class="card verdict">
+<p class="big">The frontend now tells the truth the backend already tells: the metrics API honestly returns 503 until
+real numbers exist, and the UI now shows real data or an honest "unavailable" state — never the hardcoded fakes it
+used to. And with the type-drift fixed, the <code>ignoreBuildErrors</code> escape hatch is finally OFF.</p>
+</div>
+
+<div>
+  <span class="kpi"><b>0</b><span>getMock / Math.random in src</span></span>
+  <span class="kpi"><b>0</b><span>tsc --noEmit errors</span></span>
+  <span class="kpi"><b>OFF</b><span>ignoreBuildErrors</span></span>
+  <span class="kpi"><b>exit 0</b><span>next build (strict)</span></span>
+  <span class="kpi"><b>G-047/G-032</b><span>RESOLVED</span></span>
+</div>
+
+<h2>1. No fabricated data (G-047)</h2>
+<div class="card good">
+<p><code>lib/api.ts</code>: deleted both <code>getMockModelMetrics</code>/<code>getMockEmbodiedComparison</code>
+generators — <code>getModelMetrics</code> now returns <code>{}</code> and <code>getEmbodiedComparison</code> returns
+<code>null</code> on a fetch error / a backend 503 (the metrics endpoints honestly 503 until real metrics are
+recorded — the frontend now matches that instead of fabricating). The <code>model-metrics</code> page — which shipped
+its OWN separately-hardcoded fake model array (MAE 8.5, Accuracy 96.7, "Avg Reward" 245.6, even models that don't
+exist in the backend) — was rewritten to FETCH <code>/api/metrics/models</code> and render real metrics OR an honest
+"no live metrics recorded" empty-state that points to where the real, measured numbers actually live
+(<code>compliance/model-cards/</code> + <code>models/*.metrics.json</code>). This extends the Stage-28
+<code>useLiveState</code> honest-empty pattern to the last fabricating surfaces.</p>
+</div>
+
+<h2>2. Real state shape + strict type-checking (G-032)</h2>
+<div class="card good">
+<p><code>simulation/page.tsx</code> now maps to the REAL <code>SimulationState</code>: the System Health panel reads
+live fields (<code>metrics.current.conflicts</code> / <code>robot_collisions</code> / <code>bottlenecks</code> /
+<code>overall_score</code>, <code>scenario</code>) instead of the stale schema; the 3D scenes map real
+<code>Robot[]</code>/<code>ProductionStage[]</code> (<code>robot_id</code>→<code>id</code>) with a labelled demo
+fallback; the fabricated initial metrics are removed. With the drift gone, <code>ignoreBuildErrors</code> is flipped
+to <code>false</code> — <code>tsc --noEmit</code> = 0 errors and <code>npm run build</code> type-checks strictly and
+passes (exit 0, all routes generated).</p>
+</div>
+
+<h2>3. What was verified</h2>
+<table>
+<tr><th>check</th><th>command</th><th>result</th></tr>
+<tr><td>fabrication-clean</td><td><code>grep -rE 'Math.random|getMock' src</code> (excl. detRand)</td><td>0</td></tr>
+<tr><td>strict types</td><td><code>tsc --noEmit</code></td><td>0 errors</td></tr>
+<tr><td>strict build</td><td><code>npm run build</code> (ignoreBuildErrors:false)</td><td>exit 0, all routes generated</td></tr>
+<tr><td>backend audit</td><td><code>scripts/audit.sh</code></td><td>3 (unchanged — fabrications were audit-invisible)</td></tr>
+</table>
+
+<h2>4. Honesty notes (surfaced, not hidden)</h2>
+<div class="card warn">
+<ul>
+<li>The removed fabrications were audit-INVISIBLE object literals, so <code>audit.sh</code> still reads 3 — the honesty gain is real but grep can't see it (same class as the Stage-30 <code>confidence</code> removal).</li>
+<li>The 5 bespoke visual pages + the 3D scenes still use a DETERMINISTIC <code>detRand</code> demo layout as fallback geometry — honestly labelled (Stage 28), never claimed as real telemetry. Per-visual real-data wiring of every element is incremental.</li>
+<li>Visual/interaction correctness of the 3D scenes is not browser-verified here (no running-app screenshot) — the change is type-checked + build-verified.</li>
+<li>The ESLint <code>ignoreDuringBuilds</code> flag stays on — that's a separate eslintrc→flat-config migration, not type safety. No new deps.</li>
+</ul>
+</div>
+
+<div class="footer">
+Generated 2026-07-13 · Stage 34 build increment · research §45 · G-047 + G-032 RESOLVED. The frontend is
+fabrication-clean and strictly type-checked. Next in-house: C6-R2 dependency-refresh (its own pin-blocked increment) +
+C6-R3 tail (multi-turn dialogue memory). The big wins remain real-world (pilot, certification), not more building.
+</div>
+</div>
+</body>
+</html>

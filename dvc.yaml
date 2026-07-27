@@ -1,0 +1,8 @@
+# DVC pipeline scaffold — Stage 1.
+#
+# No stages are wired yet because no datasets have been ingested. Stage 5
+# (NEU-DET / Real-IAD) writes the first `stages:` entry here. Until then,
+# this file just anchors the project for DVC tooling — `dvc init` requires
+# its presence.
+
+stages: {}

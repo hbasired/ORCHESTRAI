@@ -1,0 +1,10 @@
+{
+  "status": "insufficient_history",
+  "days_observed": 6,
+  "days_required": 14,
+  "anomalies": [],
+  "swept_at": "2026-07-02T18:02:31.240477+00:00",
+  "window_days": 90,
+  "dry_run": false,
+  "audit_seq": 427
+}

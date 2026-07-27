@@ -1,0 +1,4 @@
+# Placeholder. Real datasets land here via DVC; they are NEVER committed
+# to git. The layout is one sub-directory per dataset, each with a
+# CARD.md (see CARD.template.md) describing source, version, license,
+# split sizes, and ingestion script.

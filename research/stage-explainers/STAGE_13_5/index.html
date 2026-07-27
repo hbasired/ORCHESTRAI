@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stage 13.5 — PQC Foundations (CLOSED)</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--border:#30363d;--text:#e6edf3;
+        --muted:#9da7b3;--accent:#58a6ff;--green:#3fb950;--amber:#d29922;--purple:#bc8cff}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.65}
+  .wrap{max-width:1040px;margin:0 auto;padding:32px 24px 80px}
+  header{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:28px}
+  h1{font-size:1.7rem;margin:0 0 8px} h2{font-size:1.3rem;margin:38px 0 12px;padding-top:18px;border-top:1px solid var(--border);color:var(--accent)}
+  .sub{color:var(--muted);font-size:.95rem}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.88rem}
+  th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--accent)} tr:nth-child(even) td{background:var(--panel)}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin:14px 0}
+  .verdict{border-left:4px solid var(--accent)} .good{border-left:4px solid var(--green)} .warn{border-left:4px solid var(--amber)}
+  code{background:var(--panel2);padding:1px 6px;border-radius:4px;font-size:.85em}
+  .tag{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.72rem;font-weight:600;margin-right:4px}
+  .built{background:#1f3d2b;color:var(--green)} .todo{background:#2a2a3d;color:var(--purple)}
+  ul{padding-left:22px} li{margin:5px 0} a{color:var(--accent)} .big{font-size:1.12rem;font-weight:700;color:var(--green)}
+  .flow{font-family:ui-monospace,monospace;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:.8rem;overflow-x:auto}
+  .footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Stage 13.5 — PQC Foundations <span class="tag built">CLOSED</span></h1>
+  <div class="sub">Real post-quantum signatures replace the placeholder · ADR
+  <code>2026-06-15_stage13_5_pqc_foundations.md</code> · KB_13 · research §23.</div>
+</header>
+
+<h2>1. Why &amp; what</h2>
+<div class="card verdict">
+<p>Stage 12 wrote the <code>audit_chain</code> with a clearly-labelled <em>placeholder</em> signature, to be replaced
+here. Stage 13.5 wires <strong>real FIPS-204 ML-DSA-65</strong> (the NIST post-quantum signature standard) behind a
+pluggable <strong>KeyProvider</strong> boundary — so the EU-AI-Act audit chain + every ADR now carry genuine
+post-quantum signatures, and buying a hardware HSM later is a <em>config change, not a code change</em>.</p>
+<div class="flow">audit_chain.append(hash) ─→ pqc_signing.sign ─→ get_key_provider() ─→ SoftwareKeyProvider (dilithium-py ML-DSA-65)
+                                                                     └→ Pkcs11Provider (HSM)  ┐ swap by
+                                                                     └→ VaultProvider         ┘ CRYPTO_PROVIDER</div>
+</div>
+
+<h2>2. The library choice — real ML-DSA-65 on Windows, no liboqs (research §23)</h2>
+<div class="card good">
+<table>
+<tr><th>option</th><th>why not / why</th></tr>
+<tr><td>liboqs-python</td><td>doesn't build on Windows (KB_13) — kept as the Linux/Docker option behind the same ABC</td></tr>
+<tr><td>PyCA cryptography 46</td><td>its OpenSSL wheels do NOT expose ML-DSA (PQC needs AWS-LC/BoringSSL) — confirmed: no ml_dsa module despite OpenSSL 3.5.4</td></tr>
+<tr><td><strong>dilithium-py</strong> ✓</td><td>pure-Python <strong>FIPS-204</strong> ML-DSA — Windows-native, no build; verified sizes pk=1952/sk=4032/sig=3309, valid sign/verify, tamper rejected</td></tr>
+</table>
+<p><strong>Honest caveat:</strong> dilithium-py is not side-channel-hardened (the author says so). That's acceptable
+<em>because it is the dev/no-budget</em> <strong>software tier</strong> — production swaps to <code>pkcs11</code>(HSM)/
+<code>vault</code> via <code>CRYPTO_PROVIDER</code>, where signing runs in hardened hardware. The whole point of the
+KeyProvider abstraction (KB_13 §v2.1.5) is that this swap is config-only.</p>
+</div>
+
+<h2>3. What was built</h2>
+<div class="card good">
+<ul>
+<li><code>crypto/key_provider.py</code> — the <strong>KeyProvider ABC</strong> + <code>get_key_provider()</code> factory (software | pkcs11 | vault). No caller imports a concrete backend.</li>
+<li><code>crypto/software_provider.py</code> — real ML-DSA-65 (dilithium-py) + a versioned filesystem keystore (overlap rotation + historical verification).</li>
+<li><code>crypto/pkcs11_provider.py</code> / <code>vault_provider.py</code> — <strong>honest stubs</strong> (raise with guidance; full impl + the software→pkcs11 swap drill = Stage 22 pilot). Never a faked HSM signature (Rule 1a).</li>
+<li><code>crypto/pqc_signing.py</code> + <code>key_manager.py</code> + <code>hmac_sha384.py</code> (OT MAC, Stage 15).</li>
+<li><strong>audit_chain now real-signed</strong> (ML-DSA-65, key_version≥1) — the Stage-12 <code>_sign()</code> already hooked <code>crypto.pqc_signing</code>, so it needed no change. <code>scripts/sign-decision-log.py</code> signs ADRs with real ML-DSA-65; all decision-logs batch re-signed.</li>
+<li><strong>No RSA/ECDSA/EdDSA</strong> in <code>backend/crypto/</code> — the pre_tool_use hook + a new <code>pqc-crypto-tests</code> CI grep enforce it.</li>
+</ul>
+</div>
+
+<h2>4. Verified <span class="tag built">infra-free (no Docker needed for crypto)</span></h2>
+<div class="card good">
+<table>
+<tr><th>check</th><th>result</th></tr>
+<tr><td>Crypto tests (<code>tests/crypto/</code>)</td><td><strong>8 passed / 1 skipped</strong></td></tr>
+<tr><td>Real ML-DSA-65</td><td>sign/verify/tamper + FIPS-204 sizes (sig 3309, pk 1952)</td></tr>
+<tr><td>Rotation drill</td><td>a v1 signature still verifies after rotating to v2; v1 pubkey does NOT verify a v2 signature</td></tr>
+<tr><td>Provider-swap agility</td><td><code>CRYPTO_PROVIDER=pkcs11</code> → honest <code>NotImplementedError</code>; back to software → signs (the seam is real)</td></tr>
+<tr><td><strong>audit_chain wiring</strong></td><td><code>_sign(hash)</code> returns <strong>ML-DSA-65</strong> (not placeholder), key_version≥1, sig verifies — proven WITHOUT the DB</td></tr>
+<tr><td>ADR signing</td><td>this ADR + the Stage-13 ADR re-signed <code>algorithm: ML-DSA-65</code>, <code>agent-identity:v1</code></td></tr>
+<tr><td><code>scripts/audit.sh</code></td><td>holds <strong>364</strong> (real crypto, no theatre)</td></tr>
+</table>
+</div>
+
+<h2>5. Honest residual</h2>
+<div class="card warn">
+<ul>
+<li><span class="tag todo">G-069</span> the host Docker Desktop was <strong>DOWN</strong> at close → the DB-gated audit_chain row round-trip + the full live suite re-run are owed when Docker is up. The wiring is already proven infra-free (the <code>_sign()</code> path returns + verifies a real ML-DSA-65 signature; the DB step only persists that same signature).</li>
+<li><span class="tag todo">Stage 22</span> the <code>pkcs11</code>/<code>vault</code> providers are honest stubs; the software→HSM swap drill is the pilot.</li>
+<li><span class="tag todo">Stage 18 / 14</span> hybrid ML-KEM-768 TLS + SLH-DSA firmware = PQC Wave 2; agent-card signing = Stage 14 (uses the same agent-identity key).</li>
+</ul>
+</div>
+
+<div class="footer">
+Generated 2026-06-15 (security-pqc-engineer + backend-engineer + compliance-engineer). Honesty: real FIPS-204
+ML-DSA-65 (not a stub); the side-channel caveat of the software tier is disclosed + answered by the HSM-swap
+abstraction; pkcs11/vault are honest stubs; the Docker-down DB step is ledgered (G-069), not hidden. ADR
+<code>2026-06-15_stage13_5_pqc_foundations.md</code>; KB_13/14; research §23. Next: Stage 14 (A2A protocol).
+</div>
+</div>
+</body>
+</html>

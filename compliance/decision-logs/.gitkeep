@@ -1,0 +1,20 @@
+# decision-logs/
+
+This folder is the **secondary** location for decision/audit evidence. The primary location is the Postgres `decision_logs` table (EU AI Act Article 12 — automatic logging with 6-month retention).
+
+What lives in *this* folder:
+
+1. **Architectural decision records** — `YYYY-MM-DD_<topic>.md` files written when a non-trivial architectural decision is made (e.g. "bespoke coordinator vs LangGraph", "Real-IAD vs MVTec as primary", "Next 15 LTS pin"). The ADR includes:
+   - Decision
+   - Status (proposed / accepted / superseded)
+   - Context (what problem we were solving)
+   - Decision drivers (constraints, trade-offs)
+   - Considered options (with pros/cons per option)
+   - Outcome and consequences
+   - Links to relevant KB files / PRs / external references
+
+2. **Postmortem reports** — `YYYY-MM-DD_postmortem_<incident>.md` files written after SEV1 incidents per `incident-playbook.md`.
+
+3. **Exported audit packages** — JSON / SQL exports of `decision_logs` table rows that have aged out of the 6-month online retention but were flagged for indefinite retention (e.g. safety-incident-tagged rows). Naming: `archive_<incident_id>_<date>.json`.
+
+CI does not enforce this folder beyond requiring the `.gitkeep` presence. The stage closure ritual (`KB_README.md` §"Update rules") expects an ADR file here whenever a stage makes an architectural decision.

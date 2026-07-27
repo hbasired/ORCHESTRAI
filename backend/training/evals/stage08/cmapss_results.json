@@ -1,0 +1,16 @@
+{
+  "dataset": "C-MAPSS FD001 (official 100 test engines)",
+  "n_test_engines": 100,
+  "test_rmse": 13.803,
+  "test_nasa_score": 372.4,
+  "baseline_test_rmse": 40.073,
+  "improvement_vs_baseline_pct": 65.6,
+  "beats_baseline": true,
+  "literature_fd001_rmse_cited": {
+    "CNN(2016)": 18.45,
+    "LSTM(2017)": 16.14,
+    "DCNN(2018)": 12.61,
+    "Transformer(2021)": 11.27
+  },
+  "note": "Re-eval through the public inference glue; real public benchmark; proxy-free numbers. G-035 for real fleet."
+}

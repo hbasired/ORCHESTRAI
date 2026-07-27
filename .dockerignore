@@ -1,0 +1,45 @@
+# Ignore virtual environments
+venv/
+.venv/
+env/
+
+# Ignore node modules
+node_modules/
+
+# Ignore git
+.git/
+.gitignore
+
+# Ignore IDE
+.vscode/
+.idea/
+
+# Ignore caches
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Ignore local env files
+*.env
+.env.*
+
+# Ignore models (will be downloaded/mounted separately)
+models/
+*.pt
+*.pth
+
+# Ignore docs
+docs/
+*.md
+
+# Ignore docker folder itself
+docker/
+
+# Ignore tests for production
+tests/
+
+# Ignore recordings
+recordings/
+
+# Ignore frontend (deploy separately)
+frontend/

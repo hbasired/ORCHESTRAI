@@ -1,0 +1,218 @@
+{
+  "honest_label": "SimWorld simulation study \u2014 NOT real supply-chain evidence (G-035 buyer-blocked)",
+  "design": "paired seeds n=10, 160 ticks x 300.0s, warmup 24, disruption at tick 60 (6x-median delay on most-used supplier + 2x demand spike)",
+  "rows": [
+    {
+      "seed": 1,
+      "greedy": {
+        "arm": "greedy",
+        "stockout_ticks": 87,
+        "bullwhip": 72.25226567939428,
+        "orders_placed": 4406,
+        "units_delivered": 4163,
+        "mean_buffer_frac": 0.898
+      },
+      "agentic": {
+        "arm": "agentic",
+        "stockout_ticks": 66,
+        "bullwhip": 0.6418802093303104,
+        "orders_placed": 1302,
+        "units_delivered": 1200,
+        "mean_buffer_frac": 0.885
+      }
+    },
+    {
+      "seed": 2,
+      "greedy": {
+        "arm": "greedy",
+        "stockout_ticks": 106,
+        "bullwhip": 145.5731506623644,
+        "orders_placed": 4836,
+        "units_delivered": 4554,
+        "mean_buffer_frac": 0.887
+      },
+      "agentic": {
+        "arm": "agentic",
+        "stockout_ticks": 31,
+        "bullwhip": 0.8642431123534943,
+        "orders_placed": 1099,
+        "units_delivered": 1022,
+        "mean_buffer_frac": 0.92
+      }
+    },
+    {
+      "seed": 3,
+      "greedy": {
+        "arm": "greedy",
+        "stockout_ticks": 133,
+        "bullwhip": 88.5311134633175,
+        "orders_placed": 5473,
+        "units_delivered": 5176,
+        "mean_buffer_frac": 0.875
+      },
+      "agentic": {
+        "arm": "agentic",
+        "stockout_ticks": 49,
+        "bullwhip": 1.2846985847574974,
+        "orders_placed": 1392,
+        "units_delivered": 1202,
+        "mean_buffer_frac": 0.875
+      }
+    },
+    {
+      "seed": 4,
+      "greedy": {
+        "arm": "greedy",
+        "stockout_ticks": 131,
+        "bullwhip": 53.91162316960194,
+        "orders_placed": 5393,
+        "units_delivered": 5128,
+        "mean_buffer_frac": 0.874
+      },
+      "agentic": {
+        "arm": "agentic",
+        "stockout_ticks": 21,
+        "bullwhip": 1.471673270074112,
+        "orders_placed": 1264,
+        "units_delivered": 1102,
+        "mean_buffer_frac": 0.921
+      }
+    },
+    {
+      "seed": 5,
+      "greedy": {
+        "arm": "greedy",
+        "stockout_ticks": 93,
+        "bullwhip": 39.268957564666884,
+        "orders_placed": 4683,
+        "units_delivered": 4433,
+        "mean_buffer_frac": 0.899
+      },
+      "agentic": {
+        "arm": "agentic",
+        "stockout_ticks": 36,
+        "bullwhip": 0.8898219863192224,
+        "orders_placed": 1235,
+        "units_delivered": 1124,
+        "mean_buffer_frac": 0.907
+      }
+    },
+    {
+      "seed": 6,
+      "greedy": {
+        "arm": "greedy",
+        "stockout_ticks": 84,
+        "bullwhip": 76.41269945630644,
+        "orders_placed": 4301,
+        "units_delivered": 4055,
+        "mean_buffer_frac": 0.907
+      },
+      "agentic": {
+        "arm": "agentic",
+        "stockout_ticks": 40,
+        "bullwhip": 1.1988670699905932,
+        "orders_placed": 1343,
+        "units_delivered": 1190,
+        "mean_buffer_frac": 0.891
+      }
+    },
+    {
+      "seed": 7,
+      "greedy": {
+        "arm": "greedy",
+        "stockout_ticks": 93,
+        "bullwhip": 58.61033129808725,
+        "orders_placed": 4750,
+        "units_delivered": 4508,
+        "mean_buffer_frac": 0.886
+      },
+      "agentic": {
+        "arm": "agentic",
+        "stockout_ticks": 186,
+        "bullwhip": 2.5474176722850346,
+        "orders_placed": 1645,
+        "units_delivered": 1552,
+        "mean_buffer_frac": 0.773
+      }
+    },
+    {
+      "seed": 8,
+      "greedy": {
+        "arm": "greedy",
+        "stockout_ticks": 118,
+        "bullwhip": 79.22040148934539,
+        "orders_placed": 5505,
+        "units_delivered": 5209,
+        "mean_buffer_frac": 0.871
+      },
+      "agentic": {
+        "arm": "agentic",
+        "stockout_ticks": 17,
+        "bullwhip": 1.3411391216232749,
+        "orders_placed": 1290,
+        "units_delivered": 1101,
+        "mean_buffer_frac": 0.926
+      }
+    },
+    {
+      "seed": 9,
+      "greedy": {
+        "arm": "greedy",
+        "stockout_ticks": 110,
+        "bullwhip": 27.167592971584394,
+        "orders_placed": 4890,
+        "units_delivered": 4643,
+        "mean_buffer_frac": 0.898
+      },
+      "agentic": {
+        "arm": "agentic",
+        "stockout_ticks": 27,
+        "bullwhip": 0.64774655728866,
+        "orders_placed": 1160,
+        "units_delivered": 1050,
+        "mean_buffer_frac": 0.914
+      }
+    },
+    {
+      "seed": 10,
+      "greedy": {
+        "arm": "greedy",
+        "stockout_ticks": 108,
+        "bullwhip": 101.8936918365738,
+        "orders_placed": 4943,
+        "units_delivered": 4680,
+        "mean_buffer_frac": 0.884
+      },
+      "agentic": {
+        "arm": "agentic",
+        "stockout_ticks": 49,
+        "bullwhip": 1.2176099963467926,
+        "orders_placed": 1329,
+        "units_delivered": 1028,
+        "mean_buffer_frac": 0.914
+      }
+    }
+  ],
+  "paired_diff_greedy_minus_agentic": {
+    "stockout_ticks": {
+      "mean": 54.1,
+      "lo": 12.555,
+      "hi": 95.645
+    },
+    "bullwhip": {
+      "mean": 73.074,
+      "lo": 48.981,
+      "hi": 97.167
+    },
+    "orders_placed": {
+      "mean": 3612.1,
+      "lo": 3287.78,
+      "hi": 3936.42
+    },
+    "mean_buffer_frac": {
+      "mean": -0.005,
+      "lo": -0.039,
+      "hi": 0.029
+    }
+  }
+}

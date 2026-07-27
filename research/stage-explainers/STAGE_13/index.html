@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stage 13 — CDC Ingestion (CLOSED)</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--border:#30363d;--text:#e6edf3;
+        --muted:#9da7b3;--accent:#58a6ff;--green:#3fb950;--amber:#d29922;--purple:#bc8cff}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.65}
+  .wrap{max-width:1040px;margin:0 auto;padding:32px 24px 80px}
+  header{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:28px}
+  h1{font-size:1.7rem;margin:0 0 8px} h2{font-size:1.3rem;margin:38px 0 12px;padding-top:18px;border-top:1px solid var(--border);color:var(--accent)}
+  .sub{color:var(--muted);font-size:.95rem}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.88rem}
+  th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--accent)} tr:nth-child(even) td{background:var(--panel)}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin:14px 0}
+  .verdict{border-left:4px solid var(--accent)} .good{border-left:4px solid var(--green)} .warn{border-left:4px solid var(--amber)}
+  code{background:var(--panel2);padding:1px 6px;border-radius:4px;font-size:.85em}
+  .tag{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.72rem;font-weight:600;margin-right:4px}
+  .built{background:#1f3d2b;color:var(--green)} .todo{background:#2a2a3d;color:var(--purple)}
+  ul{padding-left:22px} li{margin:5px 0} a{color:var(--accent)} .big{font-size:1.12rem;font-weight:700;color:var(--green)}
+  .flow{font-family:ui-monospace,monospace;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:.8rem;overflow-x:auto}
+  .footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Stage 13 — CDC Ingestion <span class="tag built">CLOSED</span></h1>
+  <div class="sub">A DB write drives the agent · ADR <code>2026-06-15_stage13_cdc_ingestion.md</code> · KB_05 §97 ·
+  research §22. Verified live against the real Docker Postgres.</div>
+</header>
+
+<h2>1. Why &amp; what</h2>
+<div class="card verdict">
+<p>Until now, problems reached the agent via the REST inject endpoint or the chat path. Stage 13 closes the
+<strong>bidirectional loop</strong>: an external system (or an operator) can <em>write the database</em> — INSERT an
+<code>incidents</code> row, or flip a <code>stages.status</code> to a trouble value — and that change flows
+automatically into the live SimWorld as an injected event, which then runs through the full self-healing runtime +
+audit chain + traces.</p>
+<div class="flow">DB write (INSERT incidents / UPDATE stages.status)
+   └─ cdc_emit() trigger ─→ cdc_outbox row (durable, jsonb diff) + pg_notify('cdc_events')
+        └─ cdc_listener (LISTEN + drain-on-connect) ─→ change_to_inject() ─→ SimWorld.inject()
+             └─ Stage-11 runtime ─→ Stage-12 audit_chain ─→ Stage-12.5 traces</div>
+</div>
+
+<h2>2. The mechanism — and why this one (research §22)</h2>
+<div class="card good">
+<p><span class="big">Transactional outbox + LISTEN/NOTIFY signal + drain-on-connect</span> — the research-endorsed
+robust CDC for a single self-hosted Postgres. Every alternative failed a real constraint:</p>
+<table>
+<tr><th>option</th><th>why not (for us)</th></tr>
+<tr><td>Debezium</td><td>reached <strong>end-of-life 2026-03-31</strong></td></tr>
+<tr><td>Supabase Realtime</td><td>a heavy <strong>Elixir</strong> server — a second runtime to operate, free-cost/single-PG constraint</td></tr>
+<tr><td>test_decoding</td><td>research: <strong>"avoid in production"</strong> (no filtering/type-handling/reliable parsing)</td></tr>
+<tr><td>pgoutput</td><td>built-in + recommended, but binary protocol → <strong>fragile from-scratch parsing</strong></td></tr>
+<tr><td>wal2json</td><td><strong>not in the pgvector image</strong> (needs a custom build)</td></tr>
+<tr><td><strong>transactional outbox + NOTIFY + drain</strong> ✓</td><td>durable, ordered, transactional, low-latency, native, free, parseable — picked</td></tr>
+</table>
+</div>
+
+<h2>3. Two engineering calls (honest)</h2>
+<div class="card good">
+<ul>
+<li><strong>Sync-psycopg background thread, not async.</strong> psycopg's async mode <em>cannot</em> use Windows'
+ProactorEventLoop — which the rest of the app needs for the MCP stdio subprocesses (verified <code>InterfaceError</code>).
+Changing the global loop policy would break that. The SimWorld's <code>inject()</code> is already thread-safe, so a
+daemon thread running sync <code>LISTEN</code> is the robust, portable choice.</li>
+<li><strong>Durable, not just signalled.</strong> LISTEN/NOTIFY alone loses events if the listener is offline. The
+<strong>outbox is the durable store</strong>; the listener <strong>drains on connect</strong> (and per-notify),
+<code>ORDER BY id FOR UPDATE SKIP LOCKED</code> — so a row written while the listener was down is caught at startup
+(tested). No SimWorld bound → the row is <em>left unprocessed</em> and retried, never marked done without injecting.</li>
+</ul>
+</div>
+
+<h2>4. Verified <span class="tag built">live (Docker PG@5544, wal_level=logical)</span></h2>
+<div class="card good">
+<table>
+<tr><th>check</th><th>result</th></tr>
+<tr><td>Trigger</td><td>INSERT incident → <code>cdc_outbox</code> row + <code>pg_notify</code> payload = outbox id (confirmed)</td></tr>
+<tr><td>CDC tests (<code>tests/ingestion/</code>)</td><td><strong>6 passed</strong> — converter (no infra) + insert→notify→drain→inject + <strong>drain-on-connect durability</strong></td></tr>
+<tr><td>Full backend suite</td><td><strong>234 passed / 2 skipped</strong> (was 228/2 — +6, no regression)</td></tr>
+<tr><td><code>scripts/audit.sh</code></td><td>holds <strong>364</strong> (native-SQL CDC + a real listener; no theatre)</td></tr>
+</table>
+<p>Verify: <code>cd backend &amp;&amp; DATABASE_URL=... alembic upgrade head</code> · <code>pytest tests/ingestion/ -q</code> · <code>bash scripts/audit.sh</code> (364).</p>
+</div>
+
+<h2>5. Honest residual</h2>
+<div class="card warn">
+<ul>
+<li><span class="tag todo">G-068</span> pgoutput-based WAL logical replication (for streaming changes to a non-PG sink / Kafka at scale) → Stage 15 / a scale stage. The outbox path is the right pattern for the in-process SimWorld-inject case today.</li>
+<li>The <code>stages.status</code>→inject mapping (trouble statuses → machine_crack) is a sensible default; refine per pilot.</li>
+</ul>
+</div>
+
+<div class="footer">
+Generated 2026-06-15 (backend-engineer + devops-sre). Honesty: the mechanism choice is research-justified against
+every alternative; degradation is honest (no faked inject); the sync-thread design is documented (Windows-async
+constraint); verified live. ADR <code>2026-06-15_stage13_cdc_ingestion.md</code>; KB_05/04/07/01; research §22.
+Next: Stage 13.5 (PQC foundations — real ML-DSA-65 signing replaces the audit_chain placeholder).
+</div>
+</div>
+</body>
+</html>

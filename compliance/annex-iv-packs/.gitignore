@@ -1,0 +1,4 @@
+# Generated Annex IV packs are rebuilt on demand (KB_18 retention); don't commit the binaries.
+*.pdf
+*.html
+!.gitkeep

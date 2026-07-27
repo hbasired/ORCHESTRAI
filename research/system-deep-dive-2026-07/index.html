@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORCHESTRAI — Complete System Deep-Dive: Concepts, Models, Techniques & Comparison</title>
+<style>
+  :root{
+    color-scheme: light;
+    --plane:#f4f5f3; --surface:#fcfcfb; --surface-2:#f0f1ee; --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+    --line:#e1e0d9; --baseline:#c3c2b7; --ring:rgba(11,11,11,.10);
+    --blue:#2a78d6; --blue-600:#184f95; --blue-100:#e7f0fc; --green:#008300; --green-text:#006300;
+    --magenta:#e87ba4; --yellow:#eda100; --aqua:#1baf7a; --orange:#eb6834; --violet:#4a3aa7; --red:#e34948;
+    --good:#0ca30c; --warning:#fab219; --serious:#ec835a; --critical:#d03b3b;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--plane);color:var(--ink);line-height:1.62;-webkit-font-smoothing:antialiased}
+  .top{position:sticky;top:0;z-index:60;background:rgba(252,252,251,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .top .in{max-width:1180px;margin:0 auto;padding:10px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .top .brand{font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:9px}
+  .top .brand .m{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--blue),var(--blue-600));color:#fff;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800}
+  .top nav{display:flex;gap:3px;flex-wrap:wrap;font-size:.76rem}
+  .top nav a{color:var(--ink-2);text-decoration:none;padding:4px 9px;border-radius:7px}
+  .top nav a:hover{background:var(--blue-100);color:var(--blue-600)}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+  section{padding:52px 0;border-bottom:1px solid var(--line)}
+  h1{font-size:clamp(1.9rem,4.4vw,2.9rem);line-height:1.09;margin:0 0 14px;letter-spacing:-.02em;font-weight:800}
+  h2{font-size:clamp(1.35rem,3vw,1.9rem);margin:0 0 4px;letter-spacing:-.015em;font-weight:750}
+  h3{font-size:1.08rem;margin:24px 0 8px;font-weight:750}
+  h4{font-size:.95rem;margin:16px 0 6px;font-weight:700;color:var(--blue-600)}
+  p{margin:9px 0} a{color:var(--blue)}
+  .sec-no{color:var(--muted);font-weight:700;font-size:.78rem;letter-spacing:.16em}
+  .lead{font-size:clamp(1.02rem,2vw,1.25rem);color:var(--ink-2);max-width:820px}
+  .muted{color:var(--muted)}
+  .tag{display:inline-block;font-size:.64rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:5px;vertical-align:middle;white-space:nowrap}
+  .t-sim{background:#fff5e0;color:#8a5a00;border:1px solid #f4dca0} .t-bench{background:#e7f0fc;color:var(--blue-600);border:1px solid #cfe0f7}
+  .t-live{background:#e5f4e5;color:var(--green-text);border:1px solid #bfe3bf} .t-plan{background:#f0eefa;color:#3d2f8a;border:1px solid #ddd6f2}
+  .grid{display:grid;gap:15px} .g2{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:860px){.g2,.g3,.g4{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--ring);border-radius:13px;padding:18px 20px}
+  .card.soft{background:var(--surface-2);border-color:var(--line)}
+  .stat{background:var(--surface);border:1px solid var(--ring);border-radius:13px;padding:16px 18px}
+  .stat b{display:block;font-size:1.7rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+  .stat span{display:block;font-size:.8rem;color:var(--ink-2);margin-top:3px}
+  .scroll{overflow-x:auto;margin:14px 0}
+  table{border-collapse:collapse;width:100%;font-size:.83rem;background:var(--surface);border-radius:10px;overflow:hidden}
+  th,td{border-bottom:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+  th{background:var(--surface-2);font-weight:700;font-size:.72rem;letter-spacing:.03em;text-transform:uppercase;position:sticky;top:0}
+  tr:last-child td{border-bottom:none}
+  code{background:var(--surface-2);padding:1px 5px;border-radius:4px;font-size:.84em;font-family:ui-monospace,"SF Mono",Consolas,monospace}
+  ul.clean{list-style:none;padding:0;margin:8px 0} ul.clean li{padding:6px 0 6px 24px;position:relative;color:var(--ink-2)}
+  ul.clean li::before{content:"";position:absolute;left:2px;top:13px;width:8px;height:8px;border-radius:2px;background:var(--blue)}
+  ul.chk li::before{background:var(--good)} ul.q li::before{content:"Q";background:none;color:var(--blue);font-weight:800;font-size:.8rem;top:5px;width:auto;left:0}
+  .qa{border-left:3px solid var(--blue);padding:4px 0 4px 16px;margin:14px 0} .qa .q{font-weight:700;color:var(--ink)} .qa .a{color:var(--ink-2);font-size:.94rem}
+  .note{border-left:3px solid var(--blue);background:var(--blue-100);border-radius:0 10px 10px 0;padding:13px 16px;margin:14px 0;font-size:.92rem}
+  .note.warn{border-color:var(--serious);background:#fdf1ea}
+  .why{background:#f6faff;border:1px solid #cfe0f7;border-radius:9px;padding:11px 14px;margin:8px 0;font-size:.9rem}
+  .why b{color:var(--blue-600)}
+  .hero{background:radial-gradient(1000px 420px at 85% -10%,#e7f0fc 0,rgba(231,240,252,0) 60%),radial-gradient(700px 340px at 4% 110%,#e5f4ea 0,rgba(229,244,234,0) 58%),var(--plane);border-bottom:1px solid var(--line)}
+  .pill{display:inline-block;background:var(--surface);border:1px solid var(--ring);border-radius:100px;padding:6px 13px;font-weight:650;font-size:.85rem;margin:3px}
+  .phase{display:inline-block;font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#fff;background:var(--blue);border-radius:5px;padding:2px 8px}
+  .foot{padding:36px 0;color:var(--muted);font-size:.82rem}
+  svg{max-width:100%;height:auto}
+  .lgd{display:flex;gap:14px;flex-wrap:wrap;font-size:.78rem;color:var(--ink-2);margin:6px 0}
+  .lgd i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="in">
+    <span class="brand"><span class="m">OA</span>ORCHESTRAI · Deep-Dive</span>
+    <nav>
+      <a href="#loop">Loop</a><a href="#stages">Stages</a><a href="#models">ML models</a><a href="#datasets">Datasets</a>
+      <a href="#rl">RL</a><a href="#techniques">Techniques</a><a href="#ibm">IBM / Kagenti</a><a href="#euaiact">EU AI Act</a>
+      <a href="#pqc">PQC</a><a href="#safety">Safety</a><a href="#competitors">Competitors</a><a href="#honesty">Honesty</a><a href="#faq">FAQ</a><a href="#scenario" style="background:var(--blue);color:#fff">▶ Live Scenario</a>
+    </nav>
+  </div>
+</div>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="wrap" style="padding:56px 22px 44px">
+    <div class="sec-no">COMPLETE TECHNICAL DOSSIER · 2026</div>
+    <h1>Everything ORCHESTRAI is — the concepts, models, techniques,<br>and why every choice was made.</h1>
+    <p class="lead">A single reference that lets you explain the entire product in depth: the stage-by-stage build, every
+    ML model and dataset and <i>why</i> it was chosen, the reinforcement learning, the IBM/Kagenti agent principles, the
+    EU AI Act mapping, the post-quantum crypto, the functional safety — and exactly how it compares to the competitors we
+    researched.</p>
+    <div class="grid g4" style="margin-top:26px">
+      <div class="stat"><b>39 <span class="tag t-live" style="font-size:.5rem">+7 CTO</span></b><span>build stages, each independently reviewed</span></div>
+      <div class="stat"><b>8</b><span>trained ML models — every one with a signed model card</span></div>
+      <div class="stat"><b>4</b><span>public benchmarks + real synthetic worlds</span></div>
+      <div class="stat"><b>0</b><span>fabricated code paths — honesty enforced by CI</span></div>
+    </div>
+    <div style="margin-top:20px">
+      <span class="tag t-live">live-verified</span> <span class="tag t-bench">public benchmark</span>
+      <span class="tag t-sim">simulation</span> <span class="tag t-plan">planned / next</span>
+      <span class="muted" style="font-size:.82rem;margin-left:8px">— every claim in this document carries one of these labels.</span>
+    </div>
+  </div>
+</header>
+
+<!-- ============ THE LOOP ============ -->
+<section id="loop">
+  <div class="wrap">
+    <div class="sec-no">01 — THE MENTAL MODEL</div>
+    <h2>One loop, engineered once, running across N domains.</h2>
+    <p class="lead">Everything below is in service of a single idea — the <b>Causal Self-Healing Engine</b>. Instead of a
+    dashboard that reacts, the system runs a closed loop that <i>anticipates</i> failure, <i>reasons</i> about its cause,
+    <i>proves</i> the fix is safe, acts, and leaves cryptographic evidence. The same engine is re-used for each new
+    domain (production line, supply chain, energy) — which is why breadth was cheap to add.</p>
+
+    <figure style="background:var(--surface);border:1px solid var(--ring);border-radius:14px;padding:20px;margin:16px 0">
+      <svg viewBox="0 0 960 150" role="img" aria-label="The five-step self-healing loop">
+        <defs><style>.s{fill:#e7f0fc;stroke:#cfe0f7}.se{fill:#e5f4e5;stroke:#bfe3bf}.st{font:700 14px system-ui;fill:#0b0b0b}.sd{font:11.5px system-ui;fill:#52514e}.ar{fill:#898781}</style></defs>
+        <g><rect class="s" x="8" y="30" width="168" height="88" rx="11"/><text class="st" x="92" y="60" text-anchor="middle">1 · PREDICT</text><text class="sd" x="92" y="82" text-anchor="middle">Transformer RUL /</text><text class="sd" x="92" y="99" text-anchor="middle">LSTM TTF forecast</text></g>
+        <polygon class="ar" points="182,74 194,68 194,80"/>
+        <g><rect class="s" x="200" y="30" width="168" height="88" rx="11"/><text class="st" x="284" y="60" text-anchor="middle">2 · DIAGNOSE</text><text class="sd" x="284" y="82" text-anchor="middle">learned causal</text><text class="sd" x="284" y="99" text-anchor="middle">discovery (PC)</text></g>
+        <polygon class="ar" points="374,74 386,68 386,80"/>
+        <g><rect class="s" x="392" y="30" width="168" height="88" rx="11"/><text class="st" x="476" y="60" text-anchor="middle">3 · VERIFY</text><text class="sd" x="476" y="82" text-anchor="middle">neuro-symbolic</text><text class="sd" x="476" y="99" text-anchor="middle">plan verifier</text></g>
+        <polygon class="ar" points="566,74 578,68 578,80"/>
+        <g><rect class="s" x="584" y="30" width="168" height="88" rx="11"/><text class="st" x="668" y="60" text-anchor="middle">4 · INTERVENE</text><text class="sd" x="668" y="82" text-anchor="middle">SIL-gated action</text><text class="sd" x="668" y="99" text-anchor="middle">(RL / dispatch / MILP)</text></g>
+        <polygon class="ar" points="758,74 770,68 770,80"/>
+        <g><rect class="se" x="776" y="30" width="176" height="88" rx="11"/><text class="st" x="864" y="60" text-anchor="middle">5 · PROVE</text><text class="sd" x="864" y="82" text-anchor="middle">ML-DSA-65 signed,</text><text class="sd" x="864" y="99" text-anchor="middle">hash-chained ledger</text></g>
+      </svg>
+    </figure>
+
+    <div class="grid g3">
+      <div class="card"><h4>Production line <span class="tag t-live">live</span></h4><p class="muted" style="font-size:.88rem">RUL forecast → causal diagnosis → verifier → RL recovery + repair-robot dispatch.</p></div>
+      <div class="card"><h4>Supply chain <span class="tag t-live">live</span></h4><p class="muted" style="font-size:.88rem">Multi-agent Contract-Net replenishment + disruption monitor + stochastic reorder.</p></div>
+      <div class="card"><h4>Facilities / energy <span class="tag t-live">live</span></h4><p class="muted" style="font-size:.88rem">MILP peak-shaving &amp; load-shifting vs a time-of-use + demand-charge tariff.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STAGES ============ -->
+<section id="stages">
+  <div class="wrap">
+    <div class="sec-no">02 — THE STAGE-BY-STAGE BUILD</div>
+    <h2>39 stages, grouped into eight phases — what, how, and why.</h2>
+    <p class="lead">The system was built as a disciplined sequence. Each stage ran the full lifecycle: SOTA research →
+    depth-first implementation → mechanical audit → <b>independent review by a different agent</b> → signed decision
+    record → close. Here is the whole arc.</p>
+
+    <div class="scroll">
+    <table>
+      <thead><tr><th style="width:120px">Phase</th><th>Stages</th><th>What was built &amp; why</th></tr></thead>
+      <tbody>
+        <tr><td><span class="phase">Foundation</span></td><td>0–3</td><td>SimWorld digital twin (SimPy discrete-event factory), FastAPI services, WebSocket live broker, data schema. <b>Why:</b> a real, deterministic environment to train &amp; measure against before any real fleet exists.</td></tr>
+        <tr><td><span class="phase" style="background:var(--aqua)">ML brains</span></td><td>4–10</td><td>PdM failure predictor (XGBoost), demand forecaster (LSTM), RL intervention (PPO→MaskablePPO), world model + Transformer RUL on C-MAPSS, learned causal discovery, vision defect classifier (ResNet-18), explainability (SHAP/DiCE). <b>Why:</b> the predict→diagnose→explain half of the loop, each on the deepest honest free method.</td></tr>
+        <tr><td><span class="phase" style="background:var(--violet)">Runtime</span></td><td>11–12.5</td><td>LangGraph durable StateGraph runtime, MCP tool servers, agent memory (Mem0/pgvector + Neo4j ISA-95), OpenTelemetry observability. <b>Why:</b> a deterministic, checkpointed, observable coordination substrate.</td></tr>
+        <tr><td><span class="phase" style="background:var(--orange)">Protocols</span></td><td>13–16</td><td>CDC ingestion (DB↔agent), PQC foundations (ML-DSA-65), A2A agent-to-agent boundary, OT/IT bridge (OPC UA, Sparkplug B, ISA-95), VDA 5050 robot fleet. <b>Why:</b> speak every industrial + agent standard; sign every decision.</td></tr>
+        <tr><td><span class="phase" style="background:var(--red)">Safety</span></td><td>17</td><td>LLM-planner ⟂ SIL-rated executor split, safety-contract DSL, STO/SS1, self-healing behaviour trees, zero-trust security. <b>Why:</b> an LLM must never reach an actuator un-gated.</td></tr>
+        <tr><td><span class="phase" style="background:var(--blue-600)">PQC + Gov</span></td><td>18–19</td><td>Hybrid ML-KEM-768 TLS + SLH-DSA long-trust signing; EU AI Act Annex IV pack generator + load-bearing audit-chain verifier. <b>Why:</b> post-quantum evidence that survives an audit and a quantum adversary.</td></tr>
+        <tr><td><span class="phase" style="background:var(--magenta)">Assurance</span></td><td>20–24</td><td>Red-team eval harness (OWASP-LLM01), DR/HA + backups, pilot runbook, conformity dry-run, GA v1.0.0. <b>Why:</b> prove the defences, prove recovery, rehearse conformity, ship.</td></tr>
+        <tr><td><span class="phase" style="background:var(--green)">Post-GA</span></td><td>25–39</td><td>Post-market ops, supply-chain automation, resilience (SPIFFE/Kagenti), GraphRAG grounding + adoption UX, conversational factory intelligence, live-wired loop, detector hardening, pilot-readiness, capability-token safety, frontend honesty, multi-turn memory, bidirectional CDC, facilities/energy MILP, slice persistence. <b>Why:</b> deepen every domain and close every honest gap.</td></tr>
+        <tr><td><span class="phase" style="background:#555">CTO gates</span></td><td>×7</td><td>Every 10 closures a fresh independent "CTO" agent re-verified the whole system live. <b>Why:</b> catch what a self-audit rationalises away — the strongest independence posture we could build.</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="note"><b>The discipline itself is a feature.</b> A hard rule forbids "theatrical" fallbacks (mocks, random
+    stand-ins, hardcoded fake outputs) anywhere in production code; a CI grep counts them and the count must not rise.
+    It fell from <b>402 → 3</b> across the build (the residual 3 is one documented false-positive). Real fabrication is
+    zero in both Python and TypeScript.</div>
+  </div>
+</section>
+
+<!-- ============ ML MODELS ============ -->
+<section id="models">
+  <div class="wrap">
+    <div class="sec-no">03 — THE ML MODELS: WHAT, HOW &amp; WHY</div>
+    <h2>Eight trained models — each the deepest honest free/local choice.</h2>
+    <p class="lead">Every model raises an explicit <code>ModelUnavailableError</code> if its weights are absent — it never
+    fabricates a prediction. Every weight ships with a <code>metrics.json</code> + a signed model card (git SHA, dataset
+    hash, hyperparameters). Here is each one, and the reasoning behind it.</p>
+
+    <div class="scroll">
+    <table>
+      <thead><tr><th>Model</th><th>Architecture</th><th>Dataset</th><th>Key result</th><th>Why this model</th></tr></thead>
+      <tbody>
+        <tr><td><b>PdM failure predictor</b><br>Stage 4</td><td><b>XGBoost</b> (gradient-boosted trees); recall-tuned threshold 0.779</td><td>AI4I 2020 (UCI)<span class="tag t-bench">bench</span></td><td>ROC-AUC <b>0.971</b> / PR-AUC 0.847</td><td>Tabular sensor data → trees beat the MLP (PR-AUC 0.847 vs 0.679). Recall-tuned because a missed failure costs more than a false alarm.</td></tr>
+        <tr><td><b>Demand forecaster</b><br>Stage 5</td><td><b>LSTM</b> — window 24, hidden 128, 1 layer, 15 cyclical features, log1p target</td><td>UCI Bike Sharing<span class="tag t-bench">bench</span></td><td>MAE 32.9 · <b>+59% vs persistence</b></td><td>A sequence model for a time series; cyclical encodings + log target from a grid search. Honest proxy (bike demand) → re-fit on real orders at pilot.</td></tr>
+        <tr><td><b>World model (TTF)</b><br>Stage 8</td><td><b>1-layer LSTM</b> h48 → MLP head → scalar time-to-failure</td><td>SimWorld crack rollouts<span class="tag t-sim">sim</span></td><td>TTF MAE <b>0.067 min</b> (+97.8% vs naive)</td><td>Forecasts the horizon the diagnosis/verify steps need. Replaced an earlier <code>np.random</code> stub — now genuinely learned.</td></tr>
+        <tr><td><b>RUL Transformer</b><br>Stage 8 (depth)</td><td><b>Transformer encoder</b>: Linear(14→64) → sinusoidal PE → 2× encoder layer (4 heads, FFN 128, GELU) → mean-pool → MLP head</td><td><b>NASA C-MAPSS FD001</b><span class="tag t-bench">bench</span></td><td>test RMSE <b>13.80</b> · beats CNN 18.45 &amp; LSTM 16.14</td><td>Attention captures long-range degradation better than recurrence on the canonical RUL benchmark — proves the architecture on real data, not just the toy sim.</td></tr>
+        <tr><td><b>Defect classifier</b><br>Stage 9</td><td><b>ResNet-18 transfer learning</b> (fine-tune layer4 + fc), RGB 128×128 → 6 classes</td><td><b>NEU-CLS</b> steel surface<span class="tag t-bench">bench</span></td><td>acc <b>99.3%</b> / macro-F1 0.993 (vs tiny-CNN 88.2%)</td><td>Transfer learning from ImageNet features beats a from-scratch CNN by 11 points — the right call when labelled industrial images are scarce.</td></tr>
+        <tr><td><b>RL intervention v0</b><br>Stage 7</td><td><b>PPO</b> from scratch — shared-trunk actor-critic MLP 2×64, 24k steps</td><td>Synthetic SimPy env<span class="tag t-sim">sim</span></td><td>learns (return −160.8→−134.0) but <b>ties the rules</b></td><td>An honest negative: at v0 PPO did <i>not</i> beat the hand-rules, so the rules stayed the default. Shipped as a safety-shielded substrate for the deeper attempt.</td></tr>
+        <tr><td><b>RL intervention v1</b><br>Stage 7 (depth)</td><td><b>MaskablePPO</b> (SB3-contrib) — action masking, 250k steps</td><td>Gymnasium maintenance MDP<span class="tag t-sim">sim</span></td><td><b>−125.1 vs best rule −137.4</b>, CI [6.0, 18.71], 36/50 wins</td><td>Action masking + a richer MDP (group batching, crew contention) let RL genuinely beat the best rule — the first version that earned its place.</td></tr>
+        <tr><td><b>Injection classifier</b><br>Stage 31</td><td><b>Logistic Regression</b> over bge-small embeddings (+ optional LLM judge)</td><td>OWASP-LLM01 corpus<span class="tag t-bench">bench</span></td><td>detection <b>0.9935 → 1.0</b>, FPR → 0 (held-out CV)</td><td>A calibrated learned tier over semantic embeddings beats brittle regex; held-out cross-validation, not train-on-test.</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="muted" style="font-size:.84rem">Plus pretrained utility models: <b>YOLOv8n</b> (real object detection, de-mocked from a random fallback), <b>Whisper</b> (speech-to-text), <b>Piper</b> TTS (Hindi/Telugu) — for the operator interface.</p>
+
+    <div class="why"><b>Why "deepest honest free/local" is a rule, not a preference:</b> a shallow toy where a deeper free
+    method is feasible is treated as a hard-rule violation. That is why you see a real Transformer on a real benchmark
+    (not a toy net on the sim), learned causal discovery (not a hand-coded rule), and a battle-tested RL library
+    (SB3) — each chosen because it was the most thorough option achievable at zero cost on CPU.</div>
+  </div>
+</section>
+
+<!-- ============ DATASETS ============ -->
+<section id="datasets">
+  <div class="wrap">
+    <div class="sec-no">04 — DATASETS &amp; WHY</div>
+    <h2>Real public benchmarks where they exist; honest synthetic worlds where they don't.</h2>
+    <div class="scroll">
+    <table>
+      <thead><tr><th>Dataset</th><th>Used by</th><th>License</th><th>Why chosen</th></tr></thead>
+      <tbody>
+        <tr><td><b>AI4I 2020</b> (UCI)</td><td>PdM failure predictor</td><td>CC BY 4.0</td><td>The standard tabular predictive-maintenance benchmark — real machine sensor readings with labelled failures.</td></tr>
+        <tr><td><b>NASA C-MAPSS FD001</b></td><td>RUL Transformer</td><td>Public (NASA)</td><td><i>The</i> canonical Remaining-Useful-Life benchmark; lets us prove the architecture against published CNN/LSTM/Transformer baselines.</td></tr>
+        <tr><td><b>NEU-CLS</b></td><td>Defect classifier</td><td>Academic</td><td>Real steel-surface defect images across 6 classes — a genuine industrial vision task (proxy domain; steel ≠ warehouse).</td></tr>
+        <tr><td><b>UCI Bike Sharing</b></td><td>Demand forecaster</td><td>CC BY 4.0</td><td>A clean, seasonal demand time-series to validate the forecasting pipeline before real order data exists.</td></tr>
+        <tr><td><b>OWASP-LLM01 corpus</b></td><td>Injection classifier + red-team evals</td><td>Defensive fixtures</td><td>217 real prompt-injection attacks + benign controls — the standard for measuring LLM injection defences.</td></tr>
+        <tr><td><b>SimWorld</b> (in-house)</td><td>World model, RL, the loop A/Bs</td><td>Ours</td><td>A deterministic SimPy digital twin — real physics-shaped stochastics, seedable for paired A/B measurement, with no real fleet available.</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="note warn"><b>The single honest limitation, stated plainly (ledger item G-035):</b> the sim &amp; benchmark
+    datasets are <i>proxies</i>. Every model is designed to be <b>re-fit on a customer's real telemetry at pilot</b> —
+    that conversion from proxy to real evidence is exactly what a design-partner engagement unlocks. We never present a
+    proxy number as a real-world deployment result.</div>
+  </div>
+</section>
+
+<!-- ============ RL ============ -->
+<section id="rl">
+  <div class="wrap">
+    <div class="sec-no">05 — REINFORCEMENT LEARNING</div>
+    <h2>RL used where planning beats rules — and only when it provably does.</h2>
+    <div class="grid g2">
+      <div class="card">
+        <h4>Where &amp; why RL</h4>
+        <p style="font-size:.92rem">Maintenance <b>scheduling</b> under crew contention and opportunistic batching is a
+        sequential decision problem — exactly where a learned policy can outperform static thresholds by trading off
+        future risk against present cost. That's the intervention step of the loop.</p>
+        <h4>The honest two-attempt story</h4>
+        <ul class="clean">
+          <li><b>v0 — from-scratch PPO</b> (actor-critic MLP 2×64, 24k steps). It <i>learned</i> but only <b>tied</b> the hand-rules. We reported the negative and kept rules as the default.</li>
+          <li><b>v1 — MaskablePPO</b> (SB3-contrib) with <b>action masking</b> + a richer MDP (group batching, crew contention, opportunistic demand), 250k steps. It <b>beat</b> the best rule: −125.1 vs −137.4, 95% CI [6.0, 18.71], 36/50 paired wins.</li>
+        </ul>
+      </div>
+      <div class="card soft">
+        <h4>How it's evaluated &amp; deployed — safely</h4>
+        <ul class="clean chk">
+          <li><b>CRN-paired evaluation</b> (common random numbers) so the RL-vs-rule comparison is a true paired test with a confidence interval, not a lucky seed.</li>
+          <li><b>Action masking</b> encodes hard constraints directly into the policy's action space — it can't even propose an illegal action.</li>
+          <li><b>Shadow-mode deployment</b> in the live runtime: the policy runs, logs its recommendation and its agreement with the rules, and <b>never actuates</b>. Promotion is gated by the autonomy ladder + human-in-the-loop.</li>
+          <li><b>The verifier/validator remain the shield</b> — even a promoted RL action must pass the neuro-symbolic plan verifier and the SIL-rated executor.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="why"><b>Parameter tuning, in general:</b> hyperparameters were chosen by grid/seeded search and reported in
+    each model card (e.g. the demand LSTM's window/hidden/feature set; the RUL Transformer's heads/FFN/PE; the PdM
+    recall-tuned threshold 0.779; PPO's step budgets). Model selection always used a held-out split with a single final
+    eval — no test-set peeking — and the losing option (MLP over XGBoost, from-scratch PPO) is retained and documented,
+    not hidden.</div>
+  </div>
+</section>
+
+<!-- ============ TECHNIQUES ============ -->
+<section id="techniques">
+  <div class="wrap">
+    <div class="sec-no">06 — THE TECHNIQUES</div>
+    <h2>The methods that make the loop deep instead of shallow.</h2>
+    <div class="grid g2">
+      <div class="card"><h4>Learned causal discovery (PC algorithm)</h4><p class="muted" style="font-size:.9rem">Rather than hand-coding "vibration causes cracks", the <b>PC constraint-based algorithm</b> (causal-learn) recovers the structural causal model <i>from data</i> — skeleton F1 0.75, correctly finding the proximity hub. Diagnosis is discovered, not asserted.</p></div>
+      <div class="card"><h4>Neuro-symbolic plan verification</h4><p class="muted" style="font-size:.9rem">A symbolic constraint engine checks every proposed plan against declarative safety/throughput contracts (crew capacity, throughput floor, SIL redundancy) and <b>rejects</b> unsafe ones. The neural policy proposes; the symbolic verifier disposes.</p></div>
+      <div class="card"><h4>Counterfactual explainability (DiCE + SHAP)</h4><p class="muted" style="font-size:.9rem">Every decision carries a "why": exact <b>SHAP</b> top drivers + <b>DiCE</b> counterfactuals ("had torque been 8% lower, no maintenance"). An operator gets a reason, not a bare score — the trust the black-box PdM vendors can't give.</p></div>
+      <div class="card"><h4>GraphRAG grounding</h4><p class="muted" style="font-size:.9rem">Answers are grounded in a real SOP corpus (bge-small retrieval) + a 1–2-hop ISA-95 Neo4j neighbourhood, with explicit citations — and an <b>honest-empty</b> "I have no evidence for that" when nothing grounds the question. No hallucinated operations advice.</p></div>
+      <div class="card"><h4>MILP optimization (energy)</h4><p class="muted" style="font-size:.9rem">Peak-shaving + load-shifting is solved as a real mixed-integer program (<code>scipy</code>/HiGHS): minimise time-of-use energy + demand charge, subject to the production floor. Genuine optimization, not a heuristic.</p></div>
+      <div class="card"><h4>Contract-Net consensus (supply chain)</h4><p class="muted" style="font-size:.9rem">Replenishment uses the classic <b>Contract-Net Protocol</b> — announce, sealed bids from observed supplier stats, min-cost award — with every award routed through the safety gate. Multi-agent coordination that's auditable.</p></div>
+      <div class="card"><h4>Active diagnosis (information gain)</h4><p class="muted" style="font-size:.9rem">When the fault is ambiguous, the system selects the probe with maximum <b>mutual information</b>, does an exact Bayesian belief update, and commits only above a confidence threshold — else abstains. Diagnosis that knows when it doesn't know.</p></div>
+      <div class="card"><h4>Capability tokens (safety)</h4><p class="muted" style="font-size:.9rem">Actuation is authorised by an unforgeable, action-bound, time-limited <b>HMAC capability token</b> minted at validation — defeating forged, stale (TOCTOU), and wrong-action decisions. Independently bypass-tested: 0 bypasses.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ IBM / KAGENTI ============ -->
+<section id="ibm">
+  <div class="wrap">
+    <div class="sec-no">07 — IBM AGENT PRINCIPLES, KAGENTI &amp; PROTOCOLS</div>
+    <h2>Built to plug into the emerging enterprise-agent ecosystem — on our own spine.</h2>
+    <p class="lead">The agent layer follows the principles and protocols that IBM, the Linux Foundation, and the
+    cloud-native community are standardising — so the system is discoverable and governable inside an enterprise mesh,
+    while keeping its own safety and evidence spine.</p>
+
+    <div class="grid g2">
+      <div class="card">
+        <h4>Protocols: A2A + MCP (and ACP, folded in)</h4>
+        <ul class="clean">
+          <li><b>MCP (Model Context Protocol)</b> — our tools are exposed as MCP servers; the runtime consumes them as MCP-mediated tool calls (~97M installs, Linux Foundation).</li>
+          <li><b>A2A (Agent-to-Agent)</b> — a signed agent card at <code>/.well-known/agent.json</code> + a JSON-RPC capability endpoint. External peers reach a <i>deliberate subset</i> of skills, never the full MCP tool surface (the trust asymmetry).</li>
+          <li><b>ACP (IBM's Agent Communication Protocol)</b> — functionally folded into the same A2A foundation; we don't ship a third protocol.</li>
+        </ul>
+      </div>
+      <div class="card soft">
+        <h4>The Kagenti cloud-native pattern (IBM / CNCF)</h4>
+        <ul class="clean chk">
+          <li><b>Dual identity</b> — a SPIFFE X509-SVID for <i>transport</i> authentication (SPIRE-rotated), and ML-DSA-65 for <i>evidence</i> signing. The AgentCard binds both.</li>
+          <li><b>Framework-neutral AgentCard</b> exported as the LF A2A-spec JSON <i>and</i> a Kagenti AgentCard-CRD — so the agent is discoverable inside a CNCF platform or <b>IBM watsonx Orchestrate</b>.</li>
+          <li>Live SPIRE server+agent issuing real SVIDs; zero-downtime rotation drilled (same identity, new serial).</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Four agent-security principles → our mapping</h3>
+    <div class="scroll"><table>
+      <thead><tr><th>Principle</th><th>How ORCHESTRAI implements it</th></tr></thead>
+      <tbody>
+        <tr><td><b>Verify explicitly</b></td><td>Human-in-the-loop <code>interrupt()</code> on SIL-1+ actions; the neuro-symbolic plan verifier checks every plan.</td></tr>
+        <tr><td><b>Least privilege</b></td><td>Agent-hierarchy function-scoped RBAC; an external A2A peer is confined to a minimal capability and clearance.</td></tr>
+        <tr><td><b>Assume breach</b></td><td>Bell-LaPadula MAC (no read-up / no write-down); capability tokens so even a forged decision can't actuate.</td></tr>
+        <tr><td><b>Per-agent non-human identity</b></td><td>Each agent carries its own ML-DSA-65 identity + a SPIFFE SVID; A2A peers are authenticated by their verified SPIFFE ID.</td></tr>
+      </tbody>
+    </table></div>
+    <p class="muted" style="font-size:.84rem">Grounded in NIST SP 800-207 zero-trust + the CSA Agentic-Trust / MAESTRO / OWASP Non-Human-Identity guidance. <span class="tag t-live">live</span> identity &amp; RBAC; live-mesh deployment is a pilot step.</p>
+  </div>
+</section>
+
+<!-- ============ EU AI ACT ============ -->
+<section id="euaiact">
+  <div class="wrap">
+    <div class="sec-no">08 — EU AI ACT COMPLIANCE</div>
+    <h2>Evidence generated by construction — for the December 2027 high-risk deadline.</h2>
+    <p class="lead">Industrial safety AI is high-risk under the EU AI Act. Rather than bolt on compliance, the system
+    <b>produces the required evidence as a side-effect of operating</b> — the strongest possible position for an operator
+    facing an assessor.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Obligation</th><th>What the Act requires</th><th>How we satisfy it</th></tr></thead>
+      <tbody>
+        <tr><td><b>Art-12 — Record-keeping</b></td><td>Automatic logging of every algorithmic decision over the lifetime, with full input→output provenance</td><td>Every decision writes a signed row to the append-only, hash-chained <code>audit_chain</code> + <code>decision_logs</code> with SHA-256 input/output hashes. Automatic, not manual. <span class="tag t-live">live</span></td></tr>
+        <tr><td><b>Art-72 — Post-market monitoring</b></td><td>Ongoing monitoring for anomalies once deployed</td><td>A nightly robust-Z + IsolationForest sweep over audit features, signed into the chain; honest "insufficient history" below the window. <span class="tag t-live">live</span></td></tr>
+        <tr><td><b>Annex IV — Technical documentation</b></td><td>A 14-section technical file for the system</td><td>A generator assembles all 14 sections from live repo evidence → a PDF with an <b>ML-DSA-65-signed conformity-declaration footer</b>. <span class="tag t-live">live</span></td></tr>
+        <tr><td><b>Art-26 — Deployer obligations</b></td><td>Human oversight, logging, monitoring by the deployer</td><td>The pilot runbook ships an Art-26 deployer checklist; HITL gates are wired into the runtime. <span class="tag t-live">live</span></td></tr>
+        <tr><td><b>Conformity assessment</b></td><td>The route to a legal CE mark</td><td>Our Annex-III category (points 2–8) maps to the <b>internal-control (Annex VI)</b> route — no notified body mandated. We have rehearsed a full self-audit dry-run. <span class="tag t-plan">cert = pilot + accredited body</span></td></tr>
+      </tbody>
+    </table></div>
+    <div class="note"><b>Honest framing (claim discipline):</b> the system is conformity-assessment-<i>ready</i>, not certified.
+    No harmonised AI standard is published yet, so no presumption of conformity exists. Actual certification needs an
+    accredited body + a real cell — correctly deferred, never faked.</div>
+  </div>
+</section>
+
+<!-- ============ PQC ============ -->
+<section id="pqc">
+  <div class="wrap">
+    <div class="sec-no">09 — POST-QUANTUM CRYPTOGRAPHY</div>
+    <h2>PQC-native, because industrial evidence must survive decades.</h2>
+    <div class="grid g3">
+      <div class="card"><h4>ML-DSA-65 signing</h4><p class="muted" style="font-size:.9rem">FIPS-204 lattice signatures sign every audit-chain row, agent card, ADR, and model card. Pluggable KeyProvider (software → HSM/Vault by config).</p></div>
+      <div class="card"><h4>Hybrid ML-KEM-768 + X25519 TLS</h4><p class="muted" style="font-size:.9rem">FIPS-203 key encapsulation in a hybrid handshake on OpenSSL 3.5 — classical <i>and</i> quantum-safe at once, verified live with an ML-DSA-65 certificate.</p></div>
+      <div class="card"><h4>SLH-DSA long-trust</h4><p class="muted" style="font-size:.9rem">FIPS-205 stateless-hash signatures for long-lived firmware/model-bundle trust; all model cards carry self-verifiable signed footers.</p></div>
+    </div>
+    <div class="why"><b>Why now, not later:</b> "harvest-now, decrypt-later" means an adversary can capture today's
+    classically-signed evidence and forge it once a quantum computer exists. For a signed audit trail that must remain
+    trustworthy for the lifetime of an industrial asset, PQC is a build-time requirement, not a future upgrade. New
+    signing code is post-quantum by rule; classical-only crypto is CI-blocked.</div>
+  </div>
+</section>
+
+<!-- ============ SAFETY ============ -->
+<section id="safety">
+  <div class="wrap">
+    <div class="sec-no">10 — FUNCTIONAL SAFETY</div>
+    <h2>An LLM never touches an actuator un-gated. Full stop.</h2>
+    <div class="grid g2">
+      <div class="card">
+        <h4>The planner ⟂ executor split</h4>
+        <p style="font-size:.92rem">The LLM/agent is a <b>planner</b> only. Every actuator-bound action is described by a
+        declarative <b>safety contract</b> (preconditions, invariants, SIL level) and must pass
+        <code>validator.validate()</code>. The <b>SIL-rated executor</b> (<code>sil_bridge</code>) is the <i>only</i>
+        emitter of an actuator command — and it re-validates from the contract + world-state, or demands a fresh
+        capability token bound to that exact action.</p>
+      </div>
+      <div class="card soft">
+        <h4>Defence in depth</h4>
+        <ul class="clean chk">
+          <li><b>Capability tokens</b> — forgery / TOCTOU / replay / wrong-action all rejected (independently bypass-tested, 0 bypasses).</li>
+          <li><b>Trace-pairing CI</b> — every actuator span must be preceded by a <code>safety.validate</code> span, or the build fails.</li>
+          <li><b>STO / SS1</b> safe-torque-off &amp; safe-stop paths on fail-safe, with signed audit rows.</li>
+          <li><b>IEC 61508 SIL ↔ ISO 13849-1 PL</b> mapping; the <code>sil_bridge</code> is the certified-PLC integration seam.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ COMPETITORS ============ -->
+<section id="competitors">
+  <div class="wrap">
+    <div class="sec-no">11 — COMPETITIVE LANDSCAPE</div>
+    <h2>Who we researched, what they have, and what makes us different.</h2>
+    <div class="scroll">
+    <table>
+      <thead><tr><th>Player</th><th>What they are / have</th><th>Where we differ</th></tr></thead>
+      <tbody>
+        <tr><td><b>InOrbit / OpenRobOps</b></td><td>Fleet orchestration; open-sourced OpenRobOps (Feb 2026); $10M Series A. Orchestrates a fleet.</td><td>Orchestration is now a free commodity — we <b>integrate it beneath us</b> and add the trust/safety/evidence layer it lacks.</td></tr>
+        <tr><td><b>Cisco / Galileo</b></td><td>Agent-reliability platform; acquired by Cisco (2026), $68M raised pre-exit. Validated the category, then vacated it.</td><td>We are the <b>industrial-grade</b> version — OT integration + SIL safety + signed evidence + PQC, not a general IT-agent reliability tool.</td></tr>
+        <tr><td><b>Siemens + NVIDIA "Industrial AI OS"</b></td><td>A powerful, bundled industrial-AI stack; Erlangen fully-AI factory blueprint.</td><td>Vendor-<b>locked</b>. Our axis is neutrality + open, inspectable evidence — we run above whatever they've deployed.</td></tr>
+        <tr><td><b>Sensor-PdM vendors</b></td><td>Predictive-maintenance scores from sensors.</td><td>They sell a <i>score</i>; we sell <b>governed, explained, safety-gated action</b> on top of any score.</td></tr>
+        <tr><td><b>Safety PLC vendors</b></td><td>Certified functional-safety hardware at the machine.</td><td>They stop at the machine; we are the <b>decision layer above</b> them, and integrate at the certified-PLC seam.</td></tr>
+        <tr><td><b>Humanoid OEMs</b> (Agility, Boston Dynamics, Figure)</td><td>Humanoids bundled with their own orchestration, per-vendor.</td><td>Mixed fleets <b>need</b> a neutral layer to speak every surface — humanoids strengthen the case for us.</td></tr>
+        <tr><td><b>New agentic entrants</b> (Ati Robotics, General Robotics GRID)</td><td>Agents above ERP/MES or cross-OEM.</td><td>None carry an evidence / safety / PQC spine — a regulator-shaped foundation is our head start.</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="note"><b>The one-line difference:</b> we occupy the four-way intersection —
+    <b>Autonomous × Certifiable × Neutral × Provable</b> — that none of them holds. Not a fleet manager, not a locked
+    industrial-AI OS, not a sensor vendor, not a PLC: the neutral trust layer that makes autonomous action legal and
+    provable above whatever an operator already runs.</div>
+  </div>
+</section>
+
+<!-- ============ HONESTY ============ -->
+<section id="honesty">
+  <div class="wrap">
+    <div class="sec-no">12 — THE HONESTY METHODOLOGY</div>
+    <h2>Why every number here is trustworthy.</h2>
+    <div class="grid g4">
+      <div class="stat"><b>CI audit</b><span>a grep counts every mock/fake/hardcoded shortcut; the count must not rise (402 → 3)</span></div>
+      <div class="stat"><b>Independent review</b><span>every stage re-audited by a different agent than the builder</span></div>
+      <div class="stat"><b>Labelled evidence</b><span>every metric tagged sim / benchmark / live — no proxy sold as real</span></div>
+      <div class="stat"><b>Honest-unavailable</b><span>no model, no DB → an explicit error, never a fabricated value</span></div>
+    </div>
+    <p class="muted" style="margin-top:14px;font-size:.9rem">This is not decoration — it is the diligence pre-done. When
+    a claim can't be verified, it's marked as a gap in an open ledger with the stage that will fix it. The defining line
+    is stated everywhere it matters: <b>the discipline is production-grade; the real-world evidence is what a pilot
+    creates.</b></p>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section id="faq">
+  <div class="wrap">
+    <div class="sec-no">13 — WHAT / HOW / WHY — THE DEEP QUESTIONS</div>
+    <h2>The answers you'll be asked.</h2>
+    <div class="qa"><div class="q">Why a self-healing <i>loop</i> instead of a dashboard or a chatbot?</div><div class="a">Because value in industrial ops is <i>prevented downtime</i>, not surfaced charts. A dashboard tells you it broke; the loop predicts it, proves the fix is safe, acts, and proves it did — the difference between insight and outcome.</div></div>
+    <div class="qa"><div class="q">Why open source if you want to be funded?</div><div class="a">The commodity layers (orchestration) are already free — fighting that is a losing game. Open-core drives adoption; the regulated must-pay layers (signed evidence, safety attestation, key custody) <i>are</i> the niche, so they're defensible. The moat is non-code: time-anchored signed evidence, the per-site data flywheel, certification, and trust.</div></div>
+    <div class="qa"><div class="q">Why should I believe the metrics?</div><div class="a">Because they're labelled for exactly what they are, reproduced by an independent reviewer, and the losing results (from-scratch PPO tying the rules, the MLP losing to XGBoost) are reported, not hidden. A team that shows its negatives is telling the truth about its positives.</div></div>
+    <div class="qa"><div class="q">What's genuinely proven vs. what needs a pilot?</div><div class="a"><b>Proven:</b> a working, theatre-free platform; the loop across three domains; real safety, PQC, and EU-AI-Act machinery; benchmark + simulation results. <b>Needs a pilot:</b> real-world A/B numbers, accredited certification, scaled load, and revenue. The gap is three external partners (a site, a notified body, traffic) — not more code.</div></div>
+    <div class="qa"><div class="q">How is this different from just calling an LLM?</div><div class="a">An LLM is one component (the planner), and it is never trusted to act. It's wrapped in causal reasoning, a symbolic verifier, a SIL-rated executor with capability tokens, injection defences, and a post-quantum evidence chain. The LLM proposes; the safety and evidence spine disposes.</div></div>
+    <div class="qa"><div class="q">Why post-quantum crypto today — isn't that premature?</div><div class="a">Harvest-now-decrypt-later. An industrial audit trail must stay trustworthy for the life of the asset; evidence signed classically today is forgeable once a quantum computer exists. Being PQC-native now costs little and removes a future migration nobody else has started.</div></div>
+  </div>
+</section>
+
+<!-- ============ INTERACTIVE SCENARIO ============ -->
+<style>
+  .sc-wrap{background:linear-gradient(180deg,#f6faff, var(--plane));border:1px solid var(--ring);border-radius:16px;padding:22px 22px 26px;margin-top:16px}
+  .sc-stepline{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:2px 0 16px}
+  .sc-dot{width:26px;height:26px;border-radius:50%;border:2px solid var(--baseline);background:var(--surface);color:var(--muted);font-weight:800;font-size:.78rem;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s}
+  .sc-dot.on{border-color:var(--blue);background:var(--blue);color:#fff}
+  .sc-dot.done{border-color:var(--blue);color:var(--blue-600)}
+  .sc-seg{flex:1;min-width:8px;height:2px;background:var(--line)}
+  .sc-line{display:flex;gap:8px;overflow-x:auto;padding:6px 2px 10px}
+  .sc-stage{flex:1;min-width:112px;background:var(--surface);border:1px solid var(--ring);border-radius:11px;padding:0 0 11px;overflow:hidden;transition:.35s;position:relative}
+  .sc-stage .sc-bar{display:block;height:6px;background:var(--baseline);transition:.35s}
+  .sc-stage b{display:block;font-size:.86rem;margin:9px 12px 2px}
+  .sc-stage em{display:block;font-style:normal;font-size:.72rem;color:var(--muted);margin:0 12px;min-height:1.9em;transition:.2s}
+  .sc-stage .sc-badge{position:absolute;top:9px;right:9px;font-size:.6rem;font-weight:800;padding:2px 6px;border-radius:20px;opacity:0;transition:.3s}
+  .st-run .sc-bar{background:var(--good)} .st-run .sc-badge{background:#e5f4e5;color:var(--green-text);opacity:1;content:'OK'}
+  .st-warn .sc-bar{background:var(--warning)} .st-warn{border-color:#f4dca0}
+  .st-crit .sc-bar{background:var(--critical)} .st-crit{border-color:#f2c4c4;background:#fdf3f3}
+  .st-maint .sc-bar{background:var(--blue)} .st-maint{border-color:#cfe0f7;background:#f6faff}
+  .st-focus{box-shadow:0 0 0 3px rgba(42,120,214,.28);transform:translateY(-3px)}
+  .sc-rail{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 4px}
+  .sc-rail span{flex:1;min-width:96px;text-align:center;font-size:.74rem;font-weight:700;color:var(--muted);background:var(--surface);border:1px solid var(--ring);border-radius:8px;padding:7px 4px;transition:.25s}
+  .sc-rail span.on{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 3px 10px rgba(42,120,214,.3)}
+  .sc-rail span.on.prove{background:var(--good);border-color:var(--good)}
+  .sc-narr{background:var(--surface);border:1px solid var(--ring);border-radius:12px;padding:16px 18px;margin-top:14px;min-height:150px}
+  .sc-narr h4{margin:0 0 6px;color:var(--ink);font-size:1.05rem}
+  .sc-chip{display:inline-block;font-size:.68rem;font-weight:700;background:var(--blue-100);color:var(--blue-600);border:1px solid #cfe0f7;border-radius:20px;padding:3px 10px;margin:8px 6px 0 0}
+  .sc-chip.tech{background:#eef7f0;color:var(--green-text);border-color:#bfe3bf}
+  .sc-ctrl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .sc-btn{background:var(--blue);color:#fff;border:none;border-radius:9px;padding:10px 20px;font-weight:700;font-size:.92rem;cursor:pointer}
+  .sc-btn.ghost{background:transparent;color:var(--blue);border:1px solid var(--blue)}
+  .sc-btn:disabled{opacity:.4;cursor:not-allowed}
+  .sc-count{font-size:.8rem;color:var(--muted);font-weight:600}
+  .sc-cmp{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+  @media(max-width:720px){.sc-cmp{grid-template-columns:1fr}}
+  .sc-cmp .c{border-radius:12px;padding:14px 16px;border:1px solid var(--ring)}
+  .sc-cmp .bad{background:#fdf3f3;border-color:#f2c4c4} .sc-cmp .good{background:#f0f8f1;border-color:#bfe3bf}
+  .sc-cmp h5{margin:0 0 8px;font-size:.9rem} .sc-cmp .bad h5{color:#a5322f} .sc-cmp .good h5{color:var(--green-text)}
+  .sc-cmp ul{margin:0;padding-left:18px;font-size:.86rem;color:var(--ink-2)} .sc-cmp li{margin:4px 0}
+  .sc-metrics{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .sc-metrics .m{background:var(--surface);border:1px solid var(--ring);border-radius:10px;padding:8px 14px;text-align:center;min-width:96px}
+  .sc-metrics .m b{display:block;font-size:1.15rem;font-weight:800;line-height:1.1} .sc-metrics .m span{font-size:.68rem;color:var(--muted)}
+</style>
+<section id="scenario">
+  <div class="wrap">
+    <div class="sec-no">14 — SEE IT WORK · INTERACTIVE SCENARIO</div>
+    <h2>One shift on Welding Cell 3 — the problem, and the self-healing solution.</h2>
+    <p class="lead">Step through a real failure the way the system experiences it. Watch the factory line, the
+    self-healing loop lighting up phase by phase, and the two futures diverge: a legacy line that breaks down versus
+    ORCHESTRAI that prevents it — with signed proof at the end. <b>This one walkthrough tells the whole story.</b></p>
+
+    <div class="sc-wrap">
+      <!-- step dots -->
+      <div class="sc-stepline" id="sc-dots"></div>
+
+      <!-- the factory line -->
+      <div class="sc-line" id="sc-line">
+        <div class="sc-stage st-run" data-i="0"><span class="sc-bar"></span><b>Intake</b><em>flow nominal</em></div>
+        <div class="sc-stage st-run" data-i="1"><span class="sc-bar"></span><b>Press</b><em>14 kW · nominal</em></div>
+        <div class="sc-stage st-run" data-i="2"><span class="sc-bar"></span><b>Weld · 3</b><em class="w3">torque 38 N·m · nominal</em></div>
+        <div class="sc-stage st-run" data-i="3"><span class="sc-bar"></span><b>Machining</b><em>22 kW · nominal</em></div>
+        <div class="sc-stage st-run" data-i="4"><span class="sc-bar"></span><b>Wash</b><em>nominal</em></div>
+        <div class="sc-stage st-run" data-i="5"><span class="sc-bar"></span><b>Paint</b><em>nominal</em></div>
+      </div>
+
+      <!-- the self-healing loop rail -->
+      <div class="sc-rail" id="sc-rail">
+        <span data-p="predict">1 · PREDICT</span>
+        <span data-p="diagnose">2 · DIAGNOSE</span>
+        <span data-p="verify">3 · VERIFY</span>
+        <span data-p="intervene">4 · INTERVENE</span>
+        <span data-p="prove" class="prove">5 · PROVE</span>
+      </div>
+
+      <!-- narration -->
+      <div class="sc-narr">
+        <h4 id="sc-title">A normal shift</h4>
+        <p id="sc-body" style="margin:6px 0;color:var(--ink-2)"></p>
+        <div id="sc-chips"></div>
+        <div class="sc-metrics" id="sc-metrics"></div>
+      </div>
+
+      <!-- controls -->
+      <div class="sc-ctrl">
+        <button class="sc-btn ghost" id="sc-prev">◀ Back</button>
+        <button class="sc-btn" id="sc-next">Next ▶</button>
+        <button class="sc-btn ghost" id="sc-auto">▶ Auto-play</button>
+        <button class="sc-btn ghost" id="sc-reset">↻ Restart</button>
+        <span class="sc-count" id="sc-count"></span>
+      </div>
+
+      <!-- two futures -->
+      <div class="sc-cmp">
+        <div class="c bad"><h5>✕ Legacy system (react-only)</h5>
+          <ul id="sc-bad"><li>Watching dashboards; the drift is invisible until it breaks.</li></ul></div>
+        <div class="c good"><h5>✓ ORCHESTRAI (self-healing)</h5>
+          <ul id="sc-good"><li>The loop is silently forecasting failure on every stage.</li></ul></div>
+      </div>
+    </div>
+
+    <p class="muted" style="font-size:.84rem;margin-top:12px">Scenario values are illustrative of the live loop
+    (SimWorld physics + the real models/verifier/executor described above); the headline downtime reduction
+    (−47.9%, 95% CI) is the measured Stage-30 repair-dispatch A/B. <span class="tag t-sim">simulation</span></p>
+  </div>
+</section>
+
+<div class="wrap foot">
+  <b>ORCHESTRAI — Complete System Deep-Dive</b> · vendor-neutral, EU-AI-Act-grade, post-quantum-ready industrial agent
+  control plane · Apache-2.0 / MIT · 2026.<br>
+  Sources: the project knowledge base (models inventory, datasets catalog, protocols, governance), the signed model
+  cards, the decision-log ADRs, and the market-viability research. Every figure is labelled
+  <span class="tag t-bench">benchmark</span> / <span class="tag t-sim">simulation</span> /
+  <span class="tag t-live">live-verified</span>; no customer, revenue, or real-world deployment result is claimed —
+  those are what a design-partner pilot creates.
+</div>
+
+<script>
+(function(){
+  // status per stage index [Intake,Press,Weld3,Machining,Wash,Paint]; focus = highlighted stage; w3 = Weld-3 sub-line
+  var R='run',W='warn',C='crit',M='maint';
+  var STEPS=[
+    {line:[R,R,R,R,R,R],focus:-1,w3:'torque 38 N·m · nominal',phase:null,
+     title:'A normal shift — 08:40',
+     body:'The line runs clean. Six stages, robots feeding units downstream. What you can’t see: the self-healing loop is silently forecasting failure on every stage, and every state change is being signed into an evidence chain.',
+     chips:[['concept','Digital twin (SimWorld)'],['tech','Live telemetry + PQC audit chain']],
+     metrics:[['100%','line throughput'],['0','open incidents'],['✓','evidence signing']]},
+
+    {line:[R,R,W,R,R,R],focus:2,w3:'torque 44 N·m · rising ⚠',phase:null,
+     title:'08:42 — a drift begins on Welding Cell 3',
+     body:'Torque and vibration on Weld·3 start creeping up as a tool wears. This is the moment everything is decided — and in most factories, it is completely invisible until the machine actually breaks.',
+     chips:[['concept','The problem starts here'],['tech','Anomaly on the twin']],
+     metrics:[['100%','throughput (for now)'],['DEGRADING','weld-3 state'],['?','will it break?']]},
+
+    {line:[R,R,W,R,R,R],focus:2,w3:'TTF 18 min · AT-RISK',phase:'predict',
+     title:'PREDICT — the failure is seen before it happens',
+     body:'The Transformer RUL model (validated on the NASA C-MAPSS benchmark) forecasts Weld·3’s time-to-failure collapsing from hours to ≈18 minutes. It is flagged at-risk now — a forecast, not a reaction.',
+     chips:[['tech','Transformer RUL · C-MAPSS RMSE 13.80'],['concept','Predict, don’t react']],
+     metrics:[['18 min','forecast time-to-failure'],['at-risk','weld-3'],['0','downtime so far']]},
+
+    {line:[R,R,W,R,R,R],focus:2,w3:'cause: tool-wear → torque · crack-prox 0.82',phase:'diagnose',
+     title:'DIAGNOSE — the cause, not just a score',
+     body:'The causal engine (learned via the PC algorithm) traces the root cause: tool-wear → rising torque → crack-proximity 0.82. The operator gets a <i>why</i> with a counterfactual — “had torque stayed 8% lower, no action needed” — the trust a black-box PdM score can never earn.',
+     chips:[['tech','Learned causal discovery (PC)'],['tech','SHAP + DiCE counterfactual']],
+     metrics:[['tool-wear','root cause'],['0.82','crack proximity'],['explained','not a black box']]},
+
+    {line:[R,R,W,R,R,R],focus:2,w3:'maintenance plan: ✓ APPROVED',phase:'verify',
+     title:'VERIFY — is the fix safe to do right now?',
+     body:'Before acting, the neuro-symbolic verifier checks the plan against hard contracts: taking Weld·3 offline keeps 5/6 stages online (≥ 60% floor ✓), one maintenance crew is free ✓, and no second critical machine is down ✓ → <b>APPROVED</b>. Had any constraint failed, it would <b>REJECT</b> — the gate is real, not decorative.',
+     chips:[['tech','Neuro-symbolic plan verifier'],['concept','It can actually say NO']],
+     metrics:[['5/6','stages stay online'],['✓','crew + SIL redundancy'],['APPROVED','safe to proceed']]},
+
+    {line:[R,R,M,R,R,R],focus:2,w3:'repair robot en route · SIL-gated',phase:'intervene',
+     title:'INTERVENE — act, safely, in the cheap window',
+     body:'A capability token is minted at validation and the <b>SIL-rated executor</b> — the only thing that can touch an actuator — dispatches a repair robot and schedules 12 minutes of preventive maintenance in a low-tariff window. The LLM proposed; it never actuated. A forged or stale command would be rejected.',
+     chips:[['tech','Capability token · SIL executor'],['tech','Repair-robot dispatch (Contract-Net)']],
+     metrics:[['12 min','planned maintenance'],['token','unforgeable auth'],['robot','dispatched']]},
+
+    {line:[R,R,R,R,R,R],focus:2,w3:'restored · signed to evidence chain',phase:'prove',
+     title:'PROVE — restored, with a signed record',
+     body:'Weld·3 is back to nominal after a short <i>planned</i> stop. Every step — forecast, diagnosis, verification, action — is ML-DSA-65-signed into the append-only chain: an EU-AI-Act Annex-IV-ready record. The breakdown, the cascade, and the hours of scramble simply never happened.',
+     chips:[['tech','ML-DSA-65 signed · Annex IV'],['concept','Outcome + proof']],
+     metrics:[['−48%','downtime prevented*'],['0','cascade'],['signed','audit trail']]}
+  ];
+  var BAD=[
+    'Watching dashboards; the drift is invisible until it breaks.',
+    'Torque rising — but no alert fires; any PdM score is a black box nobody acts on.',
+    'No forecast — the machine keeps running straight toward failure.',
+    '08:58 — Weld·3 <b>CRACKS</b>. Unplanned emergency stop.',
+    'The line stalls; downstream stages starve; orders start slipping.',
+    'An operator scrambles a manual repair — measured in hours, not minutes.',
+    '<b>≈3.5 h unplanned downtime</b> · downstream cascade · no audit trail for the regulator.'
+  ];
+  var GOOD=[
+    'The loop silently forecasts failure on every stage, every tick.',
+    'The telemetry drift is captured on the digital twin the instant it begins.',
+    '<b>PREDICT:</b> RUL model forecasts TTF collapsing → Weld·3 flagged at-risk, ≈18 min out.',
+    '<b>DIAGNOSE:</b> the causal engine names the cause (tool-wear→torque, crack-prox 0.82) — a why, not a score.',
+    '<b>VERIFY:</b> the gate confirms the fix keeps ≥60% online, crew free, no 2nd critical down → APPROVED.',
+    '<b>INTERVENE:</b> a capability token authorises the SIL executor; a robot is dispatched in the cheap window. The LLM never actuates.',
+    '<b>12-min PLANNED maintenance</b> · no cascade · every step signed → Annex-IV-ready; “why?” gets a cited answer. Downtime −47.9%.'
+  ];
+  var STMAP={run:'st-run',warn:'st-warn',crit:'st-crit',maint:'st-maint'};
+  var i=0, timer=null;
+  var dots=document.getElementById('sc-dots');
+  var lineEl=document.getElementById('sc-line');
+  var rail=document.getElementById('sc-rail');
+  // build dots
+  for(var s=0;s<STEPS.length;s++){
+    if(s) { var seg=document.createElement('span'); seg.className='sc-seg'; dots.appendChild(seg); }
+    var d=document.createElement('div'); d.className='sc-dot'; d.textContent=(s+1); d.setAttribute('data-s',s);
+    d.onclick=(function(k){return function(){go(k);};})(s); dots.appendChild(d);
+  }
+  function render(){
+    var st=STEPS[i];
+    // stages
+    var cells=lineEl.querySelectorAll('.sc-stage');
+    for(var k=0;k<cells.length;k++){
+      cells[k].className='sc-stage '+STMAP[st.line[k]]+(st.focus===k?' st-focus':'');
+    }
+    lineEl.querySelector('.w3').textContent=st.w3;
+    // loop rail
+    var rs=rail.querySelectorAll('span');
+    for(var r=0;r<rs.length;r++){ rs[r].classList.toggle('on', rs[r].getAttribute('data-p')===st.phase); }
+    // narration
+    document.getElementById('sc-title').innerHTML=st.title;
+    document.getElementById('sc-body').innerHTML=st.body;
+    var chips=st.chips.map(function(c){return '<span class="sc-chip '+(c[0]==='tech'?'tech':'')+'">'+c[1]+'</span>';}).join('');
+    document.getElementById('sc-chips').innerHTML=chips;
+    document.getElementById('sc-metrics').innerHTML=st.metrics.map(function(m){return '<div class="m"><b>'+m[0]+'</b><span>'+m[1]+'</span></div>';}).join('');
+    // futures (cumulative)
+    document.getElementById('sc-bad').innerHTML=BAD.slice(0,i+1).map(function(x){return '<li>'+x+'</li>';}).join('');
+    document.getElementById('sc-good').innerHTML=GOOD.slice(0,i+1).map(function(x){return '<li>'+x+'</li>';}).join('');
+    // dots state
+    var dd=dots.querySelectorAll('.sc-dot');
+    for(var q=0;q<dd.length;q++){ dd[q].className='sc-dot'+(q===i?' on':(q<i?' done':'')); }
+    document.getElementById('sc-count').textContent='Step '+(i+1)+' of '+STEPS.length;
+    document.getElementById('sc-prev').disabled=(i===0);
+    document.getElementById('sc-next').disabled=(i===STEPS.length-1);
+  }
+  function go(k){ i=Math.max(0,Math.min(STEPS.length-1,k)); render(); }
+  function stopAuto(){ if(timer){clearInterval(timer); timer=null; document.getElementById('sc-auto').textContent='▶ Auto-play';} }
+  document.getElementById('sc-next').onclick=function(){ stopAuto(); go(i+1); };
+  document.getElementById('sc-prev').onclick=function(){ stopAuto(); go(i-1); };
+  document.getElementById('sc-reset').onclick=function(){ stopAuto(); go(0); };
+  document.getElementById('sc-auto').onclick=function(){
+    if(timer){ stopAuto(); return; }
+    if(i===STEPS.length-1) i=-1;
+    this.textContent='❙❙ Pause';
+    timer=setInterval(function(){ if(i>=STEPS.length-1){ stopAuto(); return; } go(i+1); },3200);
+  };
+  // keyboard when the scenario is in view
+  document.addEventListener('keydown',function(e){
+    var sc=document.getElementById('scenario').getBoundingClientRect();
+    if(sc.top>window.innerHeight||sc.bottom<0) return;
+    if(e.key==='ArrowRight'){ stopAuto(); go(i+1); } else if(e.key==='ArrowLeft'){ stopAuto(); go(i-1); }
+  });
+  render();
+})();
+</script>
+
+</body>
+</html>

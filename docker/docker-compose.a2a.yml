@@ -1,0 +1,23 @@
+# Stage 14 — A2A federation test: a SECOND instance of the agent so the two can exchange + verify each other's
+# signed agent cards, invoke a capability, and exercise revocation (KB_16 §"Federation testing"). Each instance has
+# its own agent-identity ML-DSA-65 key (separate KEY_STORE_DIR). Used by backend/tests/a2a/test_federation.py's
+# Docker-gated two-instance path. (The in-process two-identity federation test proves the logic without Docker.)
+services:
+  a2a-peer:
+    image: ai-embodied-agent-backend:latest   # the backend image (built from backend/Dockerfile)
+    container_name: ai-agent-a2a-peer
+    environment:
+      - CRYPTO_PROVIDER=software
+      - KEY_STORE_DIR=/app/.keystore-peer      # distinct identity from the primary instance
+      - A2A_AGENT_NAME=ai-embodied-agent-peer
+      - A2A_PUBLIC_URL=http://a2a-peer:8000
+      - DATABASE_URL=${DATABASE_URL:-}
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8100:8000"
+    networks: [ai-agent-network]
+
+networks:
+  ai-agent-network:
+    external: true
+    name: docker_ai-agent-network

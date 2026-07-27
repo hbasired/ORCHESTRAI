@@ -1,0 +1,199 @@
+{
+  "stage": 8,
+  "method": "PC algorithm (causal-learn, Fisher-Z), alpha=0.050",
+  "n_samples": 8364,
+  "n_seeds": 100,
+  "variables": [
+    "crack_proximity",
+    "load",
+    "rot_speed_rpm",
+    "torque_nm",
+    "tool_wear_min",
+    "air_temp_k",
+    "process_temp_k"
+  ],
+  "ground_truth_directed_edges": [
+    [
+      "crack_proximity",
+      "rot_speed_rpm"
+    ],
+    [
+      "crack_proximity",
+      "torque_nm"
+    ],
+    [
+      "crack_proximity",
+      "tool_wear_min"
+    ],
+    [
+      "crack_proximity",
+      "air_temp_k"
+    ],
+    [
+      "crack_proximity",
+      "process_temp_k"
+    ],
+    [
+      "load",
+      "torque_nm"
+    ],
+    [
+      "load",
+      "process_temp_k"
+    ]
+  ],
+  "skeleton_metrics": {
+    "tp": 6,
+    "fp": 3,
+    "fn": 1,
+    "precision": 0.667,
+    "recall": 0.857,
+    "f1": 0.75
+  },
+  "recovered_skeleton": [
+    [
+      "crack_proximity",
+      "rot_speed_rpm"
+    ],
+    [
+      "crack_proximity",
+      "load"
+    ],
+    [
+      "crack_proximity",
+      "tool_wear_min"
+    ],
+    [
+      "load",
+      "torque_nm"
+    ],
+    [
+      "load",
+      "process_temp_k"
+    ],
+    [
+      "rot_speed_rpm",
+      "tool_wear_min"
+    ],
+    [
+      "crack_proximity",
+      "torque_nm"
+    ],
+    [
+      "load",
+      "tool_wear_min"
+    ],
+    [
+      "air_temp_k",
+      "crack_proximity"
+    ]
+  ],
+  "recovered_directed_edges": [
+    [
+      "crack_proximity",
+      "load"
+    ],
+    [
+      "process_temp_k",
+      "load"
+    ],
+    [
+      "tool_wear_min",
+      "load"
+    ],
+    [
+      "torque_nm",
+      "load"
+    ]
+  ],
+  "proximity_hub_recovered": [
+    "rot_speed_rpm",
+    "torque_nm",
+    "tool_wear_min",
+    "air_temp_k"
+  ],
+  "proximity_hub_n": 4,
+  "node_degrees": {
+    "crack_proximity": 5,
+    "load": 4,
+    "rot_speed_rpm": 2,
+    "torque_nm": 2,
+    "tool_wear_min": 3,
+    "air_temp_k": 1,
+    "process_temp_k": 1
+  },
+  "proximity_is_max_degree_hub": true,
+  "spurious_sensor_sensor_edges": [
+    [
+      "rot_speed_rpm",
+      "tool_wear_min"
+    ]
+  ],
+  "adjacency_matrix": [
+    [
+      0,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      0
+    ],
+    [
+      1,
+      0,
+      0,
+      1,
+      1,
+      0,
+      1
+    ],
+    [
+      -1,
+      0,
+      0,
+      0,
+      -1,
+      0,
+      0
+    ],
+    [
+      -1,
+      -1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      -1,
+      -1,
+      -1,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      -1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      -1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "supports_known_scm": true,
+  "honest_note": "Learned causal discovery on the SimWorld proxy (PC, Fisher-Z). The robust, claimable result is the HUB PROPERTY: crack_proximity is recovered as the highest-degree common cause of the high-SNR degradation sensors (rpm/torque/wear), empirically supporting the known-SCM assumption that diagnosis relies on. Limitations (stated, not hidden): the ~3 K temperature-margin edges sit near the sensor-noise floor and are below PC's detection power at this sample size; the linear Fisher-Z test cannot fully screen the semi-nonlinear rpm/wear coupling (occasional spurious edge). G-035: any real-fleet causal claim needs re-discovery on real telemetry."
+}

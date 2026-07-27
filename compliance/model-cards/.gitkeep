@@ -1,0 +1,24 @@
+# model-cards/
+
+This folder holds one `<model_name>.md` file per trained weight in the system. Each is EU AI Act Article 11 (Annex IV) technical-documentation evidence.
+
+Shape (per file, written by the stage that trains the model):
+
+```markdown
+# Model card: <name>
+
+- **Intended use**: <what this model does, what it does not do>
+- **Architecture**: <class name, file path>
+- **Training data**: <dataset name(s), source URL, license, SHA256, DVC pointer>
+- **Training command**: <exact command + git SHA at training time>
+- **Hyperparameters**: <list>
+- **Eval metrics**: <metric: value, with test-set provenance>
+- **Known limitations**: <where the model is known to underperform>
+- **Out-of-distribution behavior**: <what happens on inputs outside training distribution>
+- **Bias / fairness assessment**: <if applicable to use case>
+- **Robustness**: <adversarial robustness, input perturbation studies>
+- **Last retrained**: <date>
+- **Drift monitor**: <metric being monitored, threshold, alert channel>
+```
+
+Stages 4–9 each add one or more model cards as their training runs complete. CI rejects merging a new `*.pt` / `*.pth` / `*.onnx` weight under `weights/` without a sibling model card in this folder.

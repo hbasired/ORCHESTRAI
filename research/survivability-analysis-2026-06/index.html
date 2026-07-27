@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Will We Survive? — Honest Market &amp; Frontier-Model Survivability Analysis (2026-06-15)</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--border:#30363d;--text:#e6edf3;
+        --muted:#9da7b3;--accent:#58a6ff;--green:#3fb950;--amber:#d29922;--red:#f85149;--purple:#bc8cff}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.65}
+  .wrap{max-width:1060px;margin:0 auto;padding:32px 24px 80px}
+  header{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:28px}
+  h1{font-size:1.7rem;margin:0 0 8px} h2{font-size:1.3rem;margin:38px 0 12px;padding-top:18px;border-top:1px solid var(--border);color:var(--accent)}
+  .sub{color:var(--muted);font-size:.95rem}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.88rem}
+  th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--accent)} tr:nth-child(even) td{background:var(--panel)}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin:14px 0}
+  .verdict{border-left:4px solid var(--accent)} .good{border-left:4px solid var(--green)} .warn{border-left:4px solid var(--amber)} .bad{border-left:4px solid var(--red)}
+  code{background:var(--panel2);padding:1px 6px;border-radius:4px;font-size:.85em}
+  ul{padding-left:22px} li{margin:6px 0} a{color:var(--accent)} .big{font-size:1.12rem;font-weight:700}
+  .kill{color:var(--red);font-weight:600} .moat{color:var(--green);font-weight:600}
+  .footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Will We Survive? — Honest Market &amp; Frontier-Model Survivability</h1>
+  <div class="sub">2026-06-15 · research §15 + §20.5 · operator-requested, no pacifying answers. Reflexivity
+  disclosed: this analysis is written by Claude Fable 5 — the very class of model in question — which also built most
+  of this codebase. That fact is itself evidence.</div>
+</header>
+
+<h2>1. The blunt verdict</h2>
+<div class="card verdict">
+<p><span class="big">The code will NOT save us. A Fable/Mythos-class team — including us — can rebuild this
+25-stage codebase in days-to-weeks. If our moat were the software, we would already be dead.</span></p>
+<p>What survives is everything a generated codebase <em>cannot have</em>: a time-anchored signed evidence history,
+real-deployment data, certification + notified-body relationships, an installed position on OT networks, and
+legal accountability. We survive <strong>if and only if</strong> we convert calendar time into those assets before
+better-capitalized users of the same models do. This is a race to <em>evidence + deployment</em>, not to features.</p>
+</div>
+
+<h2>2. The threats, named honestly</h2>
+<div class="card warn">
+<table>
+<tr><th>Threat</th><th>Real?</th><th>Does it kill us?</th></tr>
+<tr><td><strong>Claude Fable 5 / Mythos 5</strong> (multi-day autonomous agents; "months of engineering in days")</td><td>Yes (rel. ~2026-06-09)</td><td><span class="kill">Kills a code moat</span> — but it does NOT deliver the regulated last mile (audit history, certification, liability, OT install). It is a <em>builder-side</em> threat, symmetric (we use it too).</td></tr>
+<tr><td><strong>OpenClaw</strong> (most-starred repo in GitHub history; free local agent)</td><td>Yes</td><td>No — horizontal personal/ops agent; no SIL split, no signed evidence, no determinism. An ungoverned OpenClaw <em>inside a plant</em> is the hazard our governance answers. It is demand, not substitute.</td></tr>
+<tr><td><strong>Better future models</strong> (more capable than Fable 5)</td><td>Inevitable</td><td>Raises the floor for everyone equally. The asymmetry was never model quality — it is the non-code assets below.</td></tr>
+<tr><td><strong>Big-tech vertical entry</strong> (Siemens/NVIDIA/hyperscalers)</td><td>Yes</td><td>The genuine competitive threat — they have distribution + capital. Counter: vendor-neutrality (we are the Switzerland across their silos) + open-core + speed-to-pilot.</td></tr>
+</table>
+</div>
+
+<h2>3. What actually defends us (the 2026 moat literature agrees)</h2>
+<div class="card good">
+<p>Regulated industries stay defensible longer because <strong>workflow depth + compliance + auditability +
+cybersecurity + data-provenance</strong> are harder to copy than interface polish; general models take a user
+0→80% but not the regulated "last mile". Our five defensible assets:</p>
+<ul>
+<li><span class="moat">1. Time-anchored signed evidence history.</span> Provenance cannot be backdated — a codebase a model generates tomorrow has <em>no audit past</em>. Our append-only ML-DSA-signed <code>audit_chain</code> (built Stage 12; real signing 13.5) is literally un-fakeable after the fact.</li>
+<li><span class="moat">2. The per-site data flywheel.</span> Real incident→intervention→outcome data re-fitting the brains per plant. <code>G-035</code> (real-data re-fit) flips from a "gap" into the moat the moment a pilot runs.</li>
+<li><span class="moat">3. Certification + notified-body relationships.</span> EU AI Act / ISO 42001 / IEC 62443 conformity is calendar-bound and model-incompressible — you cannot prompt your way to a notified-body audit trail.</li>
+<li><span class="moat">4. Installed system-of-record on OT networks + SI channel.</span> "You aren't going to vibe-code your way out of Postgres" — once we are the control plane of record on a plant's OT network, displacement cost is high.</li>
+<li><span class="moat">5. Accountability / liability.</span> Industrial buyers purchase <em>someone to hold responsible</em>. A generated repo cannot be sued, insured, or certified. This is structurally model-proof.</li>
+</ul>
+</div>
+
+<h2>4. The anti-fragile move: be the trust layer FOR frontier models</h2>
+<div class="card good">
+<p><span class="big">The single most survivable position: don't compete with Fable/Mythos — become the
+zero-trust, evidence-producing safety wrapper that lets a plant run <em>any</em> model (including OpenClaw/Fable)
+behind our governed boundary.</span></p>
+<p>"The governed, zero-trust, evidence-producing agent your auditors and insurers <em>allow</em> on the OT network"
+is exactly the last mile a frontier model does not deliver — and it makes better models <strong>demand, not
+threat</strong>: the more capable and the more ungoverned the agents in the wild, the more a plant needs a
+safety/audit/zero-trust layer in front of them. This is the deepest anti-fragility available to us.</p>
+</div>
+
+<h2>5. Resilience methods — how to be MORE survivable</h2>
+<div class="card">
+<ul>
+<li><strong>Race to evidence.</strong> Pull shadow-mode pilots forward; <strong>Stage 22 (reference pilot) is THE moat event, not GA.</strong> Engineering-speed parity is table stakes (we use Fable too); the asymmetry must come from real deployments.</li>
+<li><strong>Make the data flywheel a product loop</strong>, not a gap — per-site re-fit + outcome logging (G-035 → moat).</li>
+<li><strong>Ship the zero-trust / safety wrapper as the headline</strong> (research §20; Stages 13.5/14/17/20) — it is both a compliance requirement and the model-agnostic moat.</li>
+<li><strong>Narrow defensive patents</strong> (ML-DSA-signed decision-evidence for mixed-vendor OT; sim-gated intervention before actuation; config-only crypto-provider swap) + defensive publication + open-core split (§15 D-iv).</li>
+<li><strong>Certification + standards conformance as the schedule's spine</strong> (VDA 5050 / ISO 42001 / EU AI Act / IEC 62443) — calendar-time converted to model-incompressible assets.</li>
+<li><strong>Vendor-neutrality as positioning</strong> — the Switzerland across robot/OT vendors that no single big-tech incumbent will be.</li>
+</ul>
+</div>
+
+<h2>6. The honest bottom line</h2>
+<div class="card verdict">
+<p><strong>No dishonest assurance is possible</strong> — no one can promise nothing will match or outperform this
+product; any such claim would be a lie. What is true: the chosen position — <strong>regulated + physical +
+evidence-anchored + zero-trust + vendor-neutral</strong> — sits in the most model-resistant quadrant the 2026
+evidence identifies, and being the <em>trust layer for</em> frontier models is the most anti-fragile stance
+available. <strong>Survival is conditional, not guaranteed:</strong> we survive Fable/Mythos and whatever comes
+after <em>iff</em> we reach real, evidence-producing deployments before the same models' better-capitalized users
+do. The roadmap is built to make exactly that race winnable — every gate (slice → pilot → certification → data
+flywheel) converts time a model cannot compress into an asset a model cannot copy.</p>
+</div>
+
+<div class="footer">
+Generated 2026-06-15 (product-manager + agentic-governance personas). Honesty per <code>docs/honesty-accuracy-prompt.md</code>:
+no fabricated assurance; reflexivity disclosed (authored by Fable 5). Sources: research §15 (frontier-threat, moat
+literature, patents) + §20.5 (vertical-AI defensibility 2026 — crunchbase/NEA, menlovc, symphonyai, buildmvpfast).
+Companion: <a href="../frontier-model-threat-2026-06/index.html">frontier-model-threat-2026-06</a>,
+<a href="../market-viability-2026-06/index.html">market-viability-2026-06</a>,
+<a href="../security-zero-trust-2026-06/index.html">security-zero-trust-2026-06</a>. KB_26 / risk-register.
+</div>
+</div>
+</body>
+</html>

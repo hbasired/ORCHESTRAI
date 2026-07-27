@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stage 22 — Pilot Deployment Runbook + Post-Market Monitoring (CLOSED)</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--border:#30363d;--text:#e6edf3;
+        --muted:#9da7b3;--accent:#58a6ff;--green:#3fb950;--amber:#d29922;--purple:#bc8cff}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.65}
+  .wrap{max-width:1060px;margin:0 auto;padding:32px 24px 80px}
+  header{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:28px}
+  h1{font-size:1.55rem;margin:0 0 8px} h2{font-size:1.2rem;margin:34px 0 12px;padding-top:18px;border-top:1px solid var(--border);color:var(--accent)}
+  .sub{color:var(--muted);font-size:.95rem}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.84rem}
+  th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--accent)} tr:nth-child(even) td{background:var(--panel)}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin:14px 0}
+  .verdict{border-left:4px solid var(--accent)} .good{border-left:4px solid var(--green)} .warn{border-left:4px solid var(--amber)}
+  code{background:var(--panel2);padding:1px 6px;border-radius:4px;font-size:.85em}
+  .tag{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.72rem;font-weight:600;margin-right:4px}
+  .ok{background:#1f3d2b;color:var(--green)} .todo{background:#2a2a3d;color:var(--purple)}
+  ul{padding-left:22px} li{margin:5px 0} a{color:var(--accent)} .big{font-size:1.05rem;font-weight:700;color:var(--green)}
+  .footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Stage 22 — Pilot Deployment Runbook + Post-Market Monitoring + CTO #4 Remediations <span class="tag ok">CLOSED</span></h1>
+  <div class="sub">Turn the production-SHAPED system into a pilot-DEPLOYABLE one — free/OSS/local; the real customer
+  pilot is honestly deferred · ADR <code>2026-06-22_stage22_pilot_deployment_runbook.md</code> · KB_10/KB_18 · research §32.</div>
+</header>
+
+<h2>1. What it built</h2>
+<div class="card verdict">
+<p>The deploy/monitoring half of production-readiness (Stage 21 was the recovery half), plus the doable CTO #4 Stage-22
+remediations. Phased: <strong>A</strong> technical remediations → <strong>B</strong> governance docs → <strong>C</strong>
+CI gate + tests → <strong>D</strong> close.</p>
+<p class="big">Honest split: pilot-DEPLOYABLE now (shadow/assisted); the real customer pilot + A/B needs a buyer (deferred).</p>
+</div>
+
+<h2>2. CTO #4 remediations — what was paid, verified live</h2>
+<div class="card good">
+<table>
+<tr><th>item</th><th>what</th><th>verified</th></tr>
+<tr><td><strong>R8 / G-076</strong></td><td>mem0 connects as a NON-superuser <code>mem0_app</code> LOGIN role (migration 0009) → RLS enforced by the connection role, not best-effort <code>SET ROLE</code></td><td>direct client: ns-unset → <strong>0 rows</strong>, right-ns → 1; connected as non-superuser; mem0 tests 13 pass</td></tr>
+<tr><td><strong>R1 / G-1</strong></td><td>durable audit-chain test-isolation: <code>AUDIT_CHAIN_DATABASE_URL</code> + a conftest fixture run the chain on a throwaway DB during tests</td><td>real chain head <strong>421 unchanged</strong> across the full suite; isolation test + 8 audit-chain tests pass (also fixed a latent test bug it exposed)</td></tr>
+<tr><td><strong>R6</strong></td><td>OpenSSL-3.5 CI job (<code>debian:trixie-slim</code>, OpenSSL 3.5.6) so the PQC/hybrid-TLS/SLH-DSA tests gate on every PR (they skip on OpenSSL-3.0 ubuntu runners)</td><td>verified in-container: <code>tests/crypto/</code> <strong>17 passed / 2 skipped</strong></td></tr>
+<tr><td><strong>R2</strong></td><td>risk-register refreshed at the checkpoint (CTO #4 rows + Last-reviewed)</td><td>6 new/updated rows</td></tr>
+<tr><td><strong>R3</strong></td><td>duplicate <code>sbom:</code> CI job</td><td><strong>already-clean</strong> (one blocking job, no drift) — CTO finding was stale; recorded honestly, not faked</td></tr>
+</table>
+</div>
+
+<h2>3. Pilot + EU-AI-Act documentation</h2>
+<div class="card good">
+<ul>
+<li><strong>Pilot deployment runbook</strong> (<code>compliance/pilot-deployment-runbook.md</code>) — pre-flight gate, shadow→assisted→supervised canary, rollback criteria+steps+owner, SLOs, on-call, the <strong>Art-26 deployer checklist</strong>, and §4 go-live wiring of R4/R5.</li>
+<li><strong>Post-market monitoring plan</strong> (<code>compliance/post-market-monitoring-plan.md</code>, <strong>Art-72</strong>) — each Chapter-III §2 dimension → a built signal → a threshold; <strong>ingested into the Annex IV pack</strong> (Art-72 requires it to be part of Annex IV). Pack regenerates: 14 sections, ML-DSA-65 signed.</li>
+<li><strong>Pilot onboarding kit</strong> (<code>compliance/pilot-onboarding-kit.md</code>) — onboarding checklist + data-intake spec + A/B-measurement protocol + real-fleet re-fit plan (the buildable half of R11).</li>
+</ul>
+</div>
+
+<h2>4. Honest deferrals (staged, not faked)</h2>
+<div class="card warn">
+<ul>
+<li><span class="tag todo">G-035/G-043</span> the REAL customer pilot + published A/B — needs a buyer + real fleet (not free/local-buildable). The onboarding kit lets it start day-one.</li>
+<li><span class="tag todo">R4/R5</span> A2A live-mTLS binding + first-real-PLC <code>sil_bridge</code> hardening — wired AS the pilot goes live (runbook §4, exact touch-points given); both flip to load-bearing the moment a real peer/PLC connects.</li>
+<li><span class="tag todo">R7/R9/R12</span> cascade UI (G-021), continuous anomaly detection (G-064 tail), carry-forward low/medium (G-066 scale, G-060 pgaudit, G-067, G-070). R10 → Stage 23.</li>
+<li>Conformity is <strong>NOT certified</strong> — Stage 23 dry-run + a notified body next.</li>
+</ul>
+</div>
+
+<div class="footer">
+Generated 2026-06-22 (agentic-governance + devops-sre + compliance + backend + security-pqc). Full suite 335 passed/10
+skipped; audit holds 364; no new deps. ADR <code>2026-06-22_stage22_pilot_deployment_runbook.md</code>; research §32;
+CTO #4 review §8. Next: Stage 23 — conformity dry-run.
+</div>
+</div>
+</body>
+</html>

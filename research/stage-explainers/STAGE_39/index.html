@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stage 39 — Slice Persistence + a Verifier That Can Say No</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--border:#30363d;--text:#e6edf3;
+        --muted:#9da7b3;--accent:#58a6ff;--green:#3fb950;--amber:#d29922;--red:#f85149;--purple:#bc8cff}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.65}
+  .wrap{max-width:1060px;margin:0 auto;padding:32px 24px 80px}
+  header{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:28px}
+  h1{font-size:1.5rem;margin:0 0 8px} h2{font-size:1.2rem;margin:34px 0 12px;padding-top:18px;border-top:1px solid var(--border);color:var(--accent)}
+  .sub{color:var(--muted);font-size:.95rem}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin:14px 0}
+  .verdict{border-left:4px solid var(--accent)} .good{border-left:4px solid var(--green)} .warn{border-left:4px solid var(--amber)}
+  code{background:var(--panel2);padding:1px 6px;border-radius:4px;font-size:.85em}
+  .tag{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.72rem;font-weight:600;margin-right:4px}
+  .ok{background:#1f3d2b;color:var(--green)}
+  ul{padding-left:22px} li{margin:5px 0} a{color:var(--accent)} .big{font-size:1.05rem;font-weight:700}
+  .kpi{display:inline-block;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;margin:5px 8px 5px 0;text-align:center}
+  .kpi b{display:block;font-size:1.3rem;color:var(--accent)} .kpi span{font-size:.72rem;color:var(--muted)}
+  .footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem}
+  pre{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;overflow-x:auto;font-size:.8rem}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.86rem}
+  th,td{border:1px solid var(--border);padding:7px 10px;text-align:left;vertical-align:top} th{background:var(--panel2);color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Stage 39 — Slice decision persistence + a verifier that can actually say "no" <span class="tag ok">GAP-CLOSERS</span></h1>
+  <div class="sub">Two honest completeness fixes on the Stage-6 self-healing loop: its decisions now leave a real,
+  hash-stamped record in the database (Art-12), and its safety gate — which used to rubber-stamp everything — can now
+  genuinely reject an unsafe maintenance plan. Closes ledger <b>G-045</b> and <b>G-051</b>. 2026-07-18 · research §50.</div>
+</header>
+
+<div class="card verdict">
+<p class="big">These are the kind of gaps that only surface when you finish things properly. Stage 6 <i>said</i> its
+decisions were "persisted to decision_logs" — they were in memory only. Its plan verifier was wired in, but every
+rejecting constraint was relaxed to a no-op, so it could never actually reject. Both were honestly logged in the ledger
+at the time; Stage 39 pays them: real persistence, and a gate that binds — without breaking the measured Stage-6 result.</p>
+</div>
+
+<div>
+  <span class="kpi"><b>G-045</b><span>RESOLVED · Art-12 persistence</span></span>
+  <span class="kpi"><b>G-051</b><span>RESOLVED · verifier binds</span></span>
+  <span class="kpi"><b>8 + 31</b><span>new + regression tests</span></span>
+  <span class="kpi"><b>−190.5 min</b><span>Stage-6 A/B preserved</span></span>
+  <span class="kpi"><b>audit 3</b><span>0 new deps</span></span>
+</div>
+
+<h2>G-045 — decisions that leave a real record</h2>
+<p>The EU AI Act Article 12 requires high-risk systems to <b>automatically</b> log every algorithmically-driven decision
+with full input→output provenance. Stage 6 claimed this but only kept an in-memory <code>SliceTrail</code>. Now
+<code>slice_runner._persist_decision_log()</code> writes each live decision to the Stage-1 <code>decision_logs</code>
+table:</p>
+<pre>caller      = "slice_runner"
+tool        = &lt;decision kind&gt;                     e.g. preventive_maintenance
+input_hash  = SHA-256(telemetry + prediction)     # what the system saw
+output_hash = SHA-256(decision + verification)     # what it decided
+inputs / outputs = the full JSONB provenance
+incident_id = the real UUID FK  (a non-UUID sim tag → inputs.incident_ref instead)</pre>
+<p>It's wired ON in the live operational path (<code>LiveSliceRunner</code>) and OFF for the offline A/B experiment.
+Honest by construction: <b>no database reachable → it returns <code>None</code></b> (surfaced as
+<code>decision_log_id: null</code>), never a fabricated id.</p>
+
+<h2>G-051 — a safety gate that can say "no"</h2>
+<p>The Stage-6 verify step built a <code>PlantState</code> that relaxed all three rejecting contracts —
+<code>available_crew = n</code> (unlimited), <code>throughput_floor_frac = 0.0</code>, and
+<code>max_concurrent_critical_offline = n</code> — so the plan verifier could only ever attach provenance. It now
+binds:</p>
+<table>
+  <tr><th>Constraint</th><th>Before (relaxed)</th><th>Now (binding)</th></tr>
+  <tr><td>Maintenance crew</td><td><code>n</code> (unlimited)</td><td><code>crew_total(2) − stages_in_maintenance</code> (contention)</td></tr>
+  <tr><td>Throughput floor</td><td><code>0.0</code> (none)</td><td><code>0.6</code> — ≥60% of stages must stay online</td></tr>
+  <tr><td>Critical redundancy</td><td><code>n</code> (unlimited)</td><td><code>1</code> — the SIL cap (never down &gt;1 critical machine)</td></tr>
+</table>
+<p>The verifier engine itself was always genuine (<code>test_plan_verifier.py</code>); the Stage-11 runtime path already
+bound. Stage 39 brings the Stage-6 slice path to the same honesty — and proves it: the gate now <b>rejects</b> a plan
+that would breach the throughput floor <i>and</i> one that would down a second critical machine.</p>
+
+<h2>The catch that mattered — no false-reject</h2>
+<div class="card good">
+<p>Making a gate bind risks breaking the normal case. Guarded two ways: a test that the safe single maintenance is still
+<b>approved</b>, and a full re-run of the Stage-6 A/B — <b>unplanned downtime still drops 190.5 minutes</b> (OFF 470.3 →
+ON 279.7 min), with 3.67 planned maintenances still firing and getting approved. The binding values are conservative, so
+the normal single-machine case always passes; only genuinely unsafe plans are rejected.</p>
+</div>
+
+<h2>What was measured</h2>
+<ul>
+  <li><span class="tag ok">8</span> new tests: binding plant state · genuine rejection (throughput-floor + critical-redundancy)
+  · no false-reject · DB round-trip (real 64-char hashes + caller/tool/stage_id) · honest no-op without DB · non-UUID incident handling.</li>
+  <li><span class="tag ok">31</span> regression tests (slice + verifier suites) pass; the A/B is preserved.</li>
+  <li><span class="tag ok">audit 3</span> held (<code>--no-baseline-drop</code>, additive) · <b>0 new dependencies</b>.
+  A genuinely-rejecting gate is the opposite of theatre.</li>
+</ul>
+
+<h2>What changed &amp; what's next</h2>
+<ul>
+  <li>Two Stage-6 honesty gaps (carried since June) are closed: decisions persist for real, and the verify gate binds.</li>
+  <li>The <b>post-CTO-#6 free/local build arc is COMPLETE</b> (37 bidirectional CDC → 38 facilities/energy → 39 gap-closers).</li>
+  <li>Next: the <b>consolidated handoff summary</b> — a state-of-system + pilot-readiness + real-world-path document
+  declaring the disciplined build complete. The single highest-leverage remaining move is a real pilot (buyer-blocked).</li>
+</ul>
+
+<div class="footer">
+  Stage 39 · Slice persistence (G-045) + non-relaxed verifier (G-051) · ADR
+  <code>compliance/decision-logs/2026-07-18_stage39_slice_persistence_verifier.md</code> · research §50 · audit
+  baseline 3 · 0 new deps. Independent review: PASS (different agent).
+</div>
+</div>
+</body>
+</html>

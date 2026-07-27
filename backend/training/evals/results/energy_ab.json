@@ -1,0 +1,170 @@
+{
+  "honest_label": "SimWorld simulation study over the sim's real per-stage nominal_kw \u2014 NOT real-facility evidence (real-utility tariff + metered load = G-035, buyer-blocked). Deterministic MILP: the sweep is parametric (production intensity x window), NOT random seeds; aggregate is mean/std/min/max across the sweep (a t-CI would misrepresent a non-random sample).",
+  "tariff": {
+    "on_peak_$kwh": 0.28,
+    "mid_peak_$kwh": 0.16,
+    "off_peak_$kwh": 0.1,
+    "demand_$kw_day": 0.6
+  },
+  "solver": "scipy.optimize.milp (HiGHS)",
+  "n_scenarios": 10,
+  "all_floor_ok": true,
+  "aggregate_milp": {
+    "peak_reduction_pct": {
+      "mean": 22.095,
+      "std": 20.214,
+      "min": 0.0,
+      "max": 58.869,
+      "n": 10
+    },
+    "cost_reduction_pct": {
+      "mean": 7.566,
+      "std": 4.812,
+      "min": 0.0,
+      "max": 18.828,
+      "n": 10
+    }
+  },
+  "rows": [
+    {
+      "scenario": {
+        "required_slots": 4,
+        "window": "full_day"
+      },
+      "method": "milp",
+      "baseline_peak_kw": 130.8,
+      "optimized_peak_kw": 53.8,
+      "baseline_cost": 208.408,
+      "optimized_cost": 169.168,
+      "peak_reduction_pct": 58.869,
+      "cost_reduction_pct": 18.828,
+      "floor_ok": true
+    },
+    {
+      "scenario": {
+        "required_slots": 4,
+        "window": "day_shift"
+      },
+      "method": "milp",
+      "baseline_peak_kw": 130.8,
+      "optimized_peak_kw": 94.8,
+      "baseline_cost": 234.568,
+      "optimized_cost": 212.968,
+      "peak_reduction_pct": 27.523,
+      "cost_reduction_pct": 9.208,
+      "floor_ok": true
+    },
+    {
+      "scenario": {
+        "required_slots": 6,
+        "window": "full_day"
+      },
+      "method": "milp",
+      "baseline_peak_kw": 130.8,
+      "optimized_peak_kw": 71.8,
+      "baseline_cost": 230.208,
+      "optimized_cost": 204.048,
+      "peak_reduction_pct": 45.107,
+      "cost_reduction_pct": 11.364,
+      "floor_ok": true
+    },
+    {
+      "scenario": {
+        "required_slots": 6,
+        "window": "day_shift"
+      },
+      "method": "milp",
+      "baseline_peak_kw": 130.8,
+      "optimized_peak_kw": 130.8,
+      "baseline_cost": 295.608,
+      "optimized_cost": 269.448,
+      "peak_reduction_pct": 0.0,
+      "cost_reduction_pct": 8.85,
+      "floor_ok": true
+    },
+    {
+      "scenario": {
+        "required_slots": 8,
+        "window": "full_day"
+      },
+      "method": "milp",
+      "baseline_peak_kw": 130.8,
+      "optimized_peak_kw": 87.8,
+      "baseline_cost": 252.008,
+      "optimized_cost": 238.928,
+      "peak_reduction_pct": 32.875,
+      "cost_reduction_pct": 5.19,
+      "floor_ok": true
+    },
+    {
+      "scenario": {
+        "required_slots": 8,
+        "window": "day_shift"
+      },
+      "method": "milp",
+      "baseline_peak_kw": 130.8,
+      "optimized_peak_kw": 130.8,
+      "baseline_cost": 356.648,
+      "optimized_cost": 330.488,
+      "peak_reduction_pct": 0.0,
+      "cost_reduction_pct": 7.335,
+      "floor_ok": true
+    },
+    {
+      "scenario": {
+        "required_slots": 10,
+        "window": "full_day"
+      },
+      "method": "milp",
+      "baseline_peak_kw": 130.8,
+      "optimized_peak_kw": 88.8,
+      "baseline_cost": 286.888,
+      "optimized_cost": 273.808,
+      "peak_reduction_pct": 32.11,
+      "cost_reduction_pct": 4.559,
+      "floor_ok": true
+    },
+    {
+      "scenario": {
+        "required_slots": 10,
+        "window": "day_shift"
+      },
+      "method": "milp",
+      "baseline_peak_kw": 130.8,
+      "optimized_peak_kw": 130.8,
+      "baseline_cost": 417.688,
+      "optimized_cost": 391.528,
+      "peak_reduction_pct": 0.0,
+      "cost_reduction_pct": 6.263,
+      "floor_ok": true
+    },
+    {
+      "scenario": {
+        "required_slots": 12,
+        "window": "full_day"
+      },
+      "method": "milp",
+      "baseline_peak_kw": 130.8,
+      "optimized_peak_kw": 98.8,
+      "baseline_cost": 321.768,
+      "optimized_cost": 308.688,
+      "peak_reduction_pct": 24.465,
+      "cost_reduction_pct": 4.065,
+      "floor_ok": true
+    },
+    {
+      "scenario": {
+        "required_slots": 12,
+        "window": "day_shift"
+      },
+      "method": "milp",
+      "baseline_peak_kw": 130.8,
+      "optimized_peak_kw": 130.8,
+      "baseline_cost": 452.568,
+      "optimized_cost": 452.568,
+      "peak_reduction_pct": 0.0,
+      "cost_reduction_pct": 0.0,
+      "floor_ok": true
+    }
+  ]
+}

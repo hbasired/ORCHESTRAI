@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stage 38 — Facilities / Energy Head-Agent</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--border:#30363d;--text:#e6edf3;
+        --muted:#9da7b3;--accent:#58a6ff;--green:#3fb950;--amber:#d29922;--red:#f85149;--purple:#bc8cff}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.65}
+  .wrap{max-width:1060px;margin:0 auto;padding:32px 24px 80px}
+  header{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:28px}
+  h1{font-size:1.5rem;margin:0 0 8px} h2{font-size:1.2rem;margin:34px 0 12px;padding-top:18px;border-top:1px solid var(--border);color:var(--accent)}
+  .sub{color:var(--muted);font-size:.95rem}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin:14px 0}
+  .verdict{border-left:4px solid var(--accent)} .good{border-left:4px solid var(--green)} .warn{border-left:4px solid var(--amber)}
+  code{background:var(--panel2);padding:1px 6px;border-radius:4px;font-size:.85em}
+  .tag{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.72rem;font-weight:600;margin-right:4px}
+  .ok{background:#1f3d2b;color:var(--green)}
+  ul{padding-left:22px} li{margin:5px 0} a{color:var(--accent)} .big{font-size:1.05rem;font-weight:700}
+  .kpi{display:inline-block;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;margin:5px 8px 5px 0;text-align:center}
+  .kpi b{display:block;font-size:1.3rem;color:var(--accent)} .kpi span{font-size:.72rem;color:var(--muted)}
+  .footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem}
+  pre{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;overflow-x:auto;font-size:.8rem}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.86rem}
+  th,td{border:1px solid var(--border);padding:7px 10px;text-align:left;vertical-align:top} th{background:var(--panel2);color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Stage 38 — Facilities / Energy head-agent <span class="tag ok">NEW DOMAIN</span></h1>
+  <div class="sub">The self-healing loop learns a third job: cutting the factory's electricity bill. It reads the real
+  per-stage power draw, spots an approaching demand-charge peak, and solves a genuine optimisation to shave the peak and
+  shift load off the expensive hours — without ever cutting production. Closes ledger <b>G-018</b>. 2026-07-18 · research §49.</div>
+</header>
+
+<div class="card verdict">
+<p class="big">The same KB_25 predict→diagnose→verify→intervene engine that runs the production line (Stages 6–11) and
+supply-chain (Stage 26) now runs a THIRD embodiment domain: industrial energy management. The depth that matters — the
+optimiser is a REAL mixed-integer program (scipy/HiGHS), not a hand-coded rule — and the honesty that matters — it runs
+on the sim's real per-stage kW, it's validator-gated (Hard Rule 3), and when a facility can't be shifted it reports 0%,
+never a fabricated saving.</p>
+</div>
+
+<div>
+  <span class="kpi"><b>G-018</b><span>RESOLVED</span></span>
+  <span class="kpi"><b>MILP</b><span>scipy / HiGHS · real optimisation</span></span>
+  <span class="kpi"><b>−45%</b><span>peak (live cycle)</span></span>
+  <span class="kpi"><b>−22% / −7.6%</b><span>peak / cost mean (A/B)</span></span>
+  <span class="kpi"><b>15</b><span>tests · audit 3 · 0 new deps</span></span>
+</div>
+
+<h2>Why now &amp; why this domain</h2>
+<p>The post-CTO-#6 arc keeps closing genuine free/local ledger gaps. G-018 (a Facilities/Building-energy head agent) is
+a strong pick because the sim <b>already carries a real energy model</b>: <code>simulation/calibration.py</code> defines
+a per-stage <code>nominal_kw</code> (intake 2.0 · press 14.0 · weld 18.0 · machining 22.0 · wash 8.0 · paint 12.0 kW)
+and the live <code>manufacturing_agent</code> reports <code>energy_consumption = nominal_kw when running</code>. So the
+domain extends <i>real signals</i>, not fabricated ones — the same "new head-agent domain" pattern Stage 26 used for
+supply-chain.</p>
+
+<h2>How it works — the KB_25 loop for energy (real file paths)</h2>
+<table>
+  <tr><th>Step</th><th>Realisation</th></tr>
+  <tr><td>PREDICT</td><td><code>agents/facilities/signals.py</code> — the naive-schedule demand curve from each stage's real <code>nominal_kw</code> + a documented, labelled HVAC/lighting baseline (20% of process load).</td></tr>
+  <tr><td>DIAGNOSE</td><td><code>orchestrator.py</code> — an approaching <b>demand-charge breach</b> (naive peak &gt; the contracted <code>demand_cap_kw</code>). No cap ⇒ run proactively. It does <i>not</i> invent an "anomaly" from peak&gt;process_kw (true of any overlapping schedule — that would be theatre).</td></tr>
+  <tr><td>REASON / OPTIMISE</td><td><code>optimizer.py</code> — a <b>real MILP</b> (<code>scipy.optimize.milp</code>, HiGHS): minimise <code>Σ(kW·h·ToU_price) + demand_charge·peak</code> over binary schedule variables, doing peak-shaving + load-shifting at once.</td></tr>
+  <tr><td>VERIFY</td><td>the load-shift is routed through <code>safety/validator.validate()</code> under a code-defined <code>energy_load_shift</code> contract — preconditions: production floor met, windows respected, peak not increased; invariant: energy conserved. <b>Hard Rule 3</b>: the agent proposes; <code>master.dispatch_order</code> stays the sole actuator emitter.</td></tr>
+  <tr><td>INTERVENE / EVIDENCE</td><td>the gated day-ahead schedule + a signed <code>audit_chain</code> row (<code>energy.load_shift</code>, EU-AI-Act Art-12). Surface: <code>POST /facilities/optimize-energy</code>.</td></tr>
+</table>
+
+<h2>The optimisation, precisely</h2>
+<pre>minimise   Σ_t Σ_j (kw_j · h · ToU_price_t) · x[j,t]      # ToU energy cost of the shiftable loads
+         + demand_charge · peak                          # demand charge on the day's aggregate peak
+s.t.       Σ_t x[j,t] = required_slots[j]     ∀ j         # PRODUCTION FLOOR — every stage delivers its full output
+           x[j,t] = 0     for t ∉ window[j]               # respect each load's allowed window
+           peak ≥ base_t + Σ_j kw_j · x[j,t]  ∀ t         # peak dominates every slot's aggregate kW
+           x[j,t] ∈ {0,1},  peak ≥ 0</pre>
+<p>The equality constraint is the honesty guarantee: shifting moves load in <i>time</i>, it never drops a stage's
+required run-hours. Solved deterministically by HiGHS (already installed — no new dependency).</p>
+
+<h2>What was measured (real numbers)</h2>
+<ul>
+  <li><span class="tag ok">LIVE</span> One cycle at a 100 kW demand cap: diagnosed <code>demand_charge_breach</code>,
+  peak <b>130.8 → 71.8 kW (−45.1%)</b>, bill <b>$230.21 → $204.05 (−11.4%)</b>, gate allowed, signed audit seq 10478.</li>
+  <li><span class="tag ok">A/B</span> Parametric sweep (<code>training/evals/results/energy_ab.json</code>): MILP vs
+  naive baseline — <b>peak −22.1% mean (max 58.9%)</b>, <b>cost −7.6% mean (max 18.8%)</b>, <b>all production floors held</b>.</li>
+  <li><span class="tag ok">honest 0%</span> The A/B <code>min</code> is 0.0% — where a facility's window exactly fits
+  its required hours there is nothing to shift, and the optimiser claims nothing.</li>
+  <li><span class="tag ok">15</span> tests pass (tariff · MILP · orchestrator gate · Hard-Rule-3 no-emitter · A/B · route);
+  safety (33) + health regression pass.</li>
+  <li><span class="tag ok">audit 3</span> held (<code>--no-baseline-drop</code>, additive) · <b>0 new dependencies</b> · chain green.</li>
+</ul>
+
+<h2>Honesty (Rule 1a)</h2>
+<div class="card good">
+<ul>
+  <li><b>Real signals.</b> Per-stage kW is the sim's real calibrated <code>nominal_kw</code>; the HVAC baseline is an
+  explicitly labelled documented fraction.</li>
+  <li><b>Documented, labelled tariff.</b> The ToU prices + demand charge are representative published-structure
+  constants, not a real utility schedule — labelled everywhere. The optimiser is tariff-agnostic, so only the absolute
+  $ numbers depend on it. A real pilot swaps in the customer's tariff + meter (G-035, buyer-blocked).</li>
+  <li><b>Deterministic A/B, honestly summarised.</b> The MILP is deterministic, so the sweep is parametric (production
+  intensity × window) — reported as mean/std/min/max, not a t-CI (which would misrepresent a non-random sample).</li>
+  <li><b>Hard Rule 3 intact.</b> No actuator emitter in the facilities package (grep-verified + a test); the load-shift
+  is routed through the validator; the sole emitter remains <code>master.dispatch_order</code>.</li>
+</ul>
+</div>
+
+<h2>What changed &amp; what's next</h2>
+<ul>
+  <li>The KB_25 engine now runs three domains (production line · supply-chain · <b>facilities/energy</b>). Ledger G-018 → RESOLVED.</li>
+  <li>New endpoint <code>POST /facilities/optimize-energy</code>; new signed audit event <code>energy.load_shift</code>.</li>
+  <li><b>Stage 39</b> closes two small honest gaps (G-045 persist slice decisions to Postgres; G-051 a non-relaxed
+  Stage-6 verifier), then the consolidated handoff summary declares the disciplined build complete.</li>
+</ul>
+
+<div class="footer">
+  Stage 38 · Facilities / Energy head-agent (G-018) · ADR
+  <code>compliance/decision-logs/2026-07-18_stage38_facilities_energy_agent.md</code> · research §49 · audit baseline 3
+  · 0 new deps · Hard Rule 3 intact. Independent review: PASS (different agent).
+</div>
+</div>
+</body>
+</html>

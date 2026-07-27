@@ -1,0 +1,179 @@
+{
+  "generated_at": "2026-07-20T05:36:40.638648+00:00",
+  "scenario": "machine_crack campaign (rotating stages, calibrated defaults)",
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "sim_hours": 8.0,
+  "off": {
+    "unplanned_downtime_min_mean": 470.27,
+    "total_downtime_min_mean": 470.27,
+    "crack_breakdowns_mean": 4.33,
+    "throughput_mean": 6.96
+  },
+  "on": {
+    "unplanned_downtime_min_mean": 279.74,
+    "total_downtime_min_mean": 319.4,
+    "crack_breakdowns_mean": 1.33,
+    "planned_maintenances_mean": 3.67,
+    "throughput_mean": 6.92
+  },
+  "pairs": [
+    {
+      "seed": 42,
+      "off": {
+        "seed": 42,
+        "arm": "off",
+        "sim_hours": 8.0,
+        "orders_complete": 57,
+        "throughput_units_per_hour": 7.12,
+        "unplanned_downtime_min": 397.59,
+        "planned_maintenance_min": 0.0,
+        "total_downtime_min": 397.59,
+        "breakdowns": 23,
+        "crack_breakdowns": 3,
+        "planned_maintenances": 0,
+        "cracks_injected": 5
+      },
+      "on": {
+        "seed": 42,
+        "arm": "on",
+        "sim_hours": 8.0,
+        "orders_complete": 54,
+        "throughput_units_per_hour": 6.75,
+        "unplanned_downtime_min": 328.68,
+        "planned_maintenance_min": 20.0,
+        "total_downtime_min": 348.68,
+        "breakdowns": 21,
+        "crack_breakdowns": 3,
+        "planned_maintenances": 2,
+        "cracks_injected": 5,
+        "slice_trail": {
+          "predictions": 5,
+          "diagnoses": 5,
+          "interventions": 5
+        }
+      }
+    },
+    {
+      "seed": 43,
+      "off": {
+        "seed": 43,
+        "arm": "off",
+        "sim_hours": 8.0,
+        "orders_complete": 47,
+        "throughput_units_per_hour": 5.88,
+        "unplanned_downtime_min": 606.58,
+        "planned_maintenance_min": 0.0,
+        "total_downtime_min": 606.58,
+        "breakdowns": 21,
+        "crack_breakdowns": 5,
+        "planned_maintenances": 0,
+        "cracks_injected": 5
+      },
+      "on": {
+        "seed": 43,
+        "arm": "on",
+        "sim_hours": 8.0,
+        "orders_complete": 47,
+        "throughput_units_per_hour": 5.88,
+        "unplanned_downtime_min": 260.55,
+        "planned_maintenance_min": 45.0,
+        "total_downtime_min": 305.55,
+        "breakdowns": 22,
+        "crack_breakdowns": 1,
+        "planned_maintenances": 4,
+        "cracks_injected": 5,
+        "slice_trail": {
+          "predictions": 6,
+          "diagnoses": 6,
+          "interventions": 6
+        }
+      }
+    },
+    {
+      "seed": 44,
+      "off": {
+        "seed": 44,
+        "arm": "off",
+        "sim_hours": 8.0,
+        "orders_complete": 63,
+        "throughput_units_per_hour": 7.88,
+        "unplanned_downtime_min": 406.64,
+        "planned_maintenance_min": 0.0,
+        "total_downtime_min": 406.64,
+        "breakdowns": 19,
+        "crack_breakdowns": 5,
+        "planned_maintenances": 0,
+        "cracks_injected": 5
+      },
+      "on": {
+        "seed": 44,
+        "arm": "on",
+        "sim_hours": 8.0,
+        "orders_complete": 65,
+        "throughput_units_per_hour": 8.12,
+        "unplanned_downtime_min": 249.98,
+        "planned_maintenance_min": 54.0,
+        "total_downtime_min": 303.98,
+        "breakdowns": 17,
+        "crack_breakdowns": 0,
+        "planned_maintenances": 5,
+        "cracks_injected": 5,
+        "slice_trail": {
+          "predictions": 5,
+          "diagnoses": 5,
+          "interventions": 5
+        }
+      }
+    }
+  ],
+  "measured_delta": {
+    "unplanned_downtime_min": 190.53,
+    "total_downtime_min": 150.87,
+    "throughput_units_per_hour": -0.04,
+    "note": "positive = slice loop helped; reported as measured, not asserted"
+  },
+  "measured_delta_ci95": {
+    "unplanned_downtime_min": {
+      "mean": 190.53,
+      "ci95": [
+        68.91,
+        346.03
+      ],
+      "n": 3,
+      "significant": true
+    },
+    "total_downtime_min": {
+      "mean": 150.87,
+      "ci95": [
+        48.91,
+        301.03
+      ],
+      "n": 3,
+      "significant": true
+    },
+    "crack_breakdowns": {
+      "mean": 3,
+      "ci95": [
+        0,
+        5
+      ],
+      "n": 3,
+      "significant": false
+    },
+    "throughput_units_per_hour": {
+      "mean": -0.04,
+      "ci95": [
+        -0.37,
+        0.24
+      ],
+      "n": 3,
+      "significant": false
+    },
+    "note": "paired bootstrap (5000 resamples) over per-seed OFF\u2212ON differences (throughput ON\u2212OFF). 'significant'=True iff the 95% CI excludes 0. With few seeds the CI is wide \u2014 that is honest."
+  },
+  "loop_pipeline": "predict\u2192forecast_ttf\u2192causal_diagnose\u2192shap_explain\u2192neuro_symbolic_verify\u2192intervene"
+}

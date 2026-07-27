@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stage 36 — Dependency-Refresh Feasibility Assessment</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--border:#30363d;--text:#e6edf3;
+        --muted:#9da7b3;--accent:#58a6ff;--green:#3fb950;--amber:#d29922;--red:#f85149;--purple:#bc8cff}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.65}
+  .wrap{max-width:1060px;margin:0 auto;padding:32px 24px 80px}
+  header{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:28px}
+  h1{font-size:1.5rem;margin:0 0 8px} h2{font-size:1.2rem;margin:34px 0 12px;padding-top:18px;border-top:1px solid var(--border);color:var(--accent)}
+  .sub{color:var(--muted);font-size:.95rem}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.83rem}
+  th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--accent)} tr:nth-child(even) td{background:var(--panel)}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin:14px 0}
+  .verdict{border-left:4px solid var(--accent)} .warn{border-left:4px solid var(--amber)} .good{border-left:4px solid var(--green)}
+  code{background:var(--panel2);padding:1px 6px;border-radius:4px;font-size:.85em}
+  .tag{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.72rem;font-weight:600;margin-right:4px}
+  .flag{background:#3d2a1f;color:var(--amber)}
+  ul{padding-left:22px} li{margin:5px 0} a{color:var(--accent)} .big{font-size:1.05rem;font-weight:700}
+  .kpi{display:inline-block;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;margin:5px 8px 5px 0;text-align:center}
+  .kpi b{display:block;font-size:1.3rem;color:var(--accent)} .kpi span{font-size:.72rem;color:var(--muted)}
+  .footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem}
+  pre{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;overflow-x:auto;font-size:.8rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Stage 36 — Dependency-Refresh Feasibility Assessment <span class="tag flag">ASSESSMENT / DEFERRAL</span></h1>
+  <div class="sub">The last routed CTO-#6 in-house item (C6-R2), handled honestly: attempt it safely, prove it's a
+  stack-breaking cascade, document + plan — don't force a migration that would break the verified stack. 2026-07-18 ·
+  research §47.</div>
+</header>
+
+<div class="card verdict">
+<p class="big">Sometimes the honest, appropriate outcome of "do this" is "here is exactly why it can't be done safely
+yet, with the evidence and the plan." The dependency-refresh resolves on paper but cascades into a fastapi + starlette
++ langgraph + protobuf multi-major migration that would very likely break the GA'd stack in this env — for a low-value
+hygiene item. So it's assessed and planned, not executed. The working env is unchanged; nothing is faked as done.</p>
+</div>
+
+<div>
+  <span class="kpi"><b>dry-run</b><span>safe, non-mutating probe</span></span>
+  <span class="kpi"><b>cascade</b><span>langchain+langgraph+fastapi+starlette+protobuf</span></span>
+  <span class="kpi"><b>unchanged</b><span>working env (all pins intact)</span></span>
+  <span class="kpi"><b>G-055/56/70</b><span>OPEN, now evidence-backed</span></span>
+</div>
+
+<h2>1. Attempted safely (non-mutating dry-run)</h2>
+<div class="card good">
+<pre>pip install --dry-run "httpx>=0.28.1" "a2a-sdk"
+  -> would install  a2a-sdk-1.1.1 · httpx-0.28.1 · protobuf-6.33.6 · ...
+
+pip install --dry-run "langchain-core>=1.0" "langchain>=0.4" "langgraph>=0.3" "langchain-mcp-adapters"
+  -> would install  langchain-1.3.14 · langchain-core-1.4.9 · langgraph-1.2.9
+                    · langgraph-checkpoint-4.1.1 · starlette-1.3.1 · ...</pre>
+<p class="sub">`--dry-run` resolves but installs NOTHING — the working env is untouched (verified: langchain-core
+0.3.28 / httpx 0.27.2 / fastapi 0.115.6 / langgraph 0.2.60 / starlette 0.41.3, all pinned versions intact).</p>
+</div>
+
+<h2>2. The hard blockers</h2>
+<div class="card warn">
+<table>
+<tr><th>blocker</th><th>evidence</th></tr>
+<tr><td>starlette 1.x ⟂ fastapi</td><td><code>fastapi 0.115.6</code> declares <code>starlette&lt;0.42</code>; the langchain-core-1.x chain pulls <b>starlette 1.3.1</b> → forces a fastapi major bump</td></tr>
+<tr><td>langgraph-checkpoint 4.x</td><td>the refresh pulls it; the project pinned <code>&lt;3</code> because 4.x re-introduces the Stage-11 <code>Reviver</code> break</td></tr>
+<tr><td>httpx 0.27.2 → 0.28.1</td><td>shared by fastapi / starlette / mcp / langfuse — ripples through the HTTP stack</td></tr>
+<tr><td>a2a-sdk → protobuf 6.x</td><td>perturbs the protobuf/TF/grpcio-tools set the VDA-5050 schema-gen depends on</td></tr>
+</table>
+<p class="sub">Net: a coordinated major bump of langchain + langgraph + langgraph-checkpoint + starlette + fastapi +
+httpx + a2a-sdk + langchain-mcp-adapters — spanning the runtime, API, and HTTP layers. Every one is a load-bearing,
+SBOM-attested pin.</p>
+</div>
+
+<h2>3. Why not execute it now — and the plan for when it IS done</h2>
+<div class="card">
+<ul>
+<li><b>No isolated staging + no CI gate free/local.</b> A failed cascade would break the verified GA'd stack (LangGraph runtime + durable checkpointer, FastAPI + MCP + A2A, ML/VDA-5050 protobuf) with no clean rollback here.</li>
+<li><b>Low value.</b> The pins are frozen for reproducible, Annex-IV-attestable builds, SBOM-tracked, and bandit/pip-audit gated (<code>dependency-exceptions.md</code>, G-065). The risk is "missing patches on a frozen set," already ledgered — not a live break.</li>
+<li><b>The plan</b> (<code>compliance/dependency-refresh-assessment.md §4</code>): a dedicated branch/staging + CI job that runs the full live suite — coordinated fastapi+starlette, then langchain+langgraph+checkpoint (swap in <code>langchain-mcp-adapters</code>, closes G-056), then httpx+a2a-sdk (closes G-070), then re-verify protobuf/TF, then regenerate the SBOM. Merge only on green.</li>
+</ul>
+</div>
+
+<h2>4. Honesty notes</h2>
+<div class="card warn">
+<ul>
+<li>This is a DEFERRAL, not a fix — G-055/G-056/G-070 stay OPEN, now with hard evidence + a plan attached. Nothing faked as "done."</li>
+<li>The dry-run evidence is real + reproducible; the working env is verified unchanged.</li>
+<li>Docs-only; audit holds 3; no requirements/lockfile/code changed; new deps: none.</li>
+</ul>
+</div>
+
+<div class="footer">
+Generated 2026-07-18 · Stage 36 · research §47 · <b>all routed CTO-#6 in-house items are now addressed</b> (G-075
+safety, frontend honesty, behavioural-monitor hook, risk-register, multi-turn memory, and this dep-refresh
+assessment). What remains is a real-world engagement — a pilot (G-035/G-043), certification (G-011), scale (G-066) —
+not more free/local building.
+</div>
+</div>
+</body>
+</html>

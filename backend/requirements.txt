@@ -1,0 +1,167 @@
+# AI Embodied Agent Platform — Backend dependencies
+#
+# Stage 1 (2026-05-11): every dep now pinned with `==` so CI builds are
+# reproducible. Bumps go through a normal PR; CI re-runs against the new
+# pin. The frontend equivalent lives in frontend-nextjs/package.json (LTS
+# pinned to Next 15 / React 18.3 / Tailwind 3 — see KB_TASK_LOG entry for
+# Stage 1).
+
+# --- Core framework ---------------------------------------------------------
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+uvloop==0.21.0; sys_platform != "win32"
+pydantic==2.13.4    # bumped from 2.10.4 for the mcp SDK (requires >=2.11); minor bump within 2.x, suite green
+pydantic-settings==2.7.1
+
+# --- Async / HTTP -----------------------------------------------------------
+httpx==0.27.2
+aiofiles==24.1.0
+
+# --- Logging ----------------------------------------------------------------
+structlog==24.4.0
+
+# --- Database / migrations --------------------------------------------------
+alembic==1.13.3
+sqlalchemy==2.0.35
+psycopg2-binary==2.9.10
+asyncpg==0.30.0
+supabase==2.10.0
+
+# --- Knowledge graph --------------------------------------------------------
+neo4j==5.27.0
+
+# --- Cache / pubsub ---------------------------------------------------------
+redis==5.2.0
+aioredis==2.0.1
+
+# --- LangChain / LangGraph (agent orchestration, Stage 11) ------------------
+langchain==0.3.13
+langchain-core==0.3.28
+langgraph==0.2.60
+langchain-groq==0.2.2
+langchain-google-genai==2.0.7
+# Stage 11 runtime: durable Postgres checkpointer + observability tracing (free/OSS).
+# NOTE: pin langgraph-checkpoint <3 — 4.x needs a newer langchain-core and breaks langgraph 0.2.60
+# (the `Reviver(allowed_objects=...)` API mismatch). psycopg[binary] supplies libpq on Windows.
+langgraph-checkpoint>=2.0.0,<3
+langgraph-checkpoint-postgres>=2.0.0,<3
+psycopg[binary]==3.3.4
+langfuse==4.7.1
+
+# Stage 11.5 MCP server suite (official `mcp` Python SDK, bundled FastMCP — Apache-2.0, free/OSS).
+# We mount tools into the runtime via a thin in-house stdio bridge (agents/runtime/mcp_mount.py), NOT
+# langchain-mcp-adapters: that package requires langchain-core>=1.0, a major migration off our frozen
+# langchain-core 0.3.28 runtime (research §18; ledgered for the langchain-core-1.0 work). starlette is
+# PINNED <0.42 for fastapi 0.115.6 — mcp's `starlette>=0.27` (no upper bound) is satisfied by 0.41.3 and
+# stdio transport (our CI + mount path) doesn't touch starlette.
+mcp==1.27.2
+starlette==0.41.3
+
+# Stage 12 agent memory (KB_14, research §19) — free/OSS/local.
+# Episodic/semantic store on PostgreSQL + pgvector (HNSW cosine; research §19.2). The Postgres image must ship the
+# `vector` extension — docker-compose uses `pgvector/pgvector:pg15` (the plain postgres image lacks it). Embeddings
+# are self-hosted via sentence-transformers (default BAAI/bge-large-en-v1.5 / 1024-dim; env-configurable). neo4j
+# driver is already present (Stage 0). `mem0ai`/`letta` are intentionally NOT default deps (research §19.1: we use a
+# direct pgvector store on KB_14's own schema; Letta is opt-in, flagged off).
+pgvector==0.3.6
+sentence-transformers==5.5.1
+
+# Stage 12.5 observability (KB_15, research §21) — OpenTelemetry traces → otel-collector → Langfuse + Phoenix
+# (self-hosted, Apache-2.0). The OTel ecosystem versions MUST be aligned (sdk/api/exporter at X.Y.Z; semconv +
+# instrumentation at 0.(Y)bN) — a 0.63b0 mismatch downgrades the api/semconv and breaks; pinned to the 1.42.1/0.63b1
+# matched set. langfuse (already pinned above) is the trace BACKEND (Docker); the app only needs the OTLP exporter.
+opentelemetry-api==1.42.1
+opentelemetry-sdk==1.42.1
+opentelemetry-semantic-conventions==0.63b1
+opentelemetry-exporter-otlp-proto-http==1.42.1
+opentelemetry-instrumentation==0.63b1
+opentelemetry-instrumentation-fastapi==0.63b1
+opentelemetry-instrumentation-asgi==0.63b1
+
+# Stage 13.5 PQC foundations (KB_13, research §23). Real FIPS-204 ML-DSA-65 for the SOFTWARE KeyProvider
+# (dev/no-budget tier). dilithium-py is pure-Python + Windows-native (no liboqs build) — verified FIPS-204 sizes
+# pk=1952/sk=4032/sig=3309. Production swaps to pkcs11(HSM)/vault via CRYPTO_PROVIDER (config only). NOTE: PyCA
+# cryptography 46 ships OpenSSL wheels that do NOT expose ML-DSA (PQC needs AWS-LC/BoringSSL); liboqs-python doesn't
+# build on Windows — both are Linux/Docker options behind the same KeyProvider ABC. jcs = RFC 8785 canonical JSON.
+dilithium-py==1.4.0
+jcs==0.2.1
+
+# Stage 18 PQC Wave 2 (KB_13, research §28). ML-KEM-768 (FIPS 203) app-level KEM via kyber-py (pure-Python,
+# Windows-native — the ML-KEM sibling of dilithium-py). SLH-DSA-SHA2-128s (FIPS 205) long-trust signing + the hybrid
+# X25519MLKEM768 TLS handshake use the host/container **OpenSSL 3.5** CLI (native PQC; no Python dep). cyclonedx-bom
+# generates the CycloneDX SBOM (G-065 supply-chain attestation; build-time/dev).
+kyber-py==1.2.0
+cyclonedx-bom==7.3.0
+# Stage 19 (KB_18): EU AI Act Annex IV pack PDF rendering — fpdf2 (pure-Python, no system libs unlike weasyprint).
+fpdf2==2.8.7
+
+# --- ML / DL ----------------------------------------------------------------
+torch==2.5.1
+numpy==1.26.4
+scikit-learn==1.5.2
+
+# --- Depth-hardening: Stages 6-10 SOTA deepening (2026-06-14, free/OSS/local) ---
+# Real RUL benchmark (C-MAPSS), learned causal discovery, diverse counterfactuals, and
+# action-masked RL. pandas pinned to 2.2.x: dice-ml needs >=2.0; streamlit/mlflow need <3.
+# (Note: tts<2.0 — the Stage-2 voice dep — is incompatible and unused in Stages 6-10.)
+pandas==2.2.3
+causal-learn==0.1.4.7          # PC algorithm — learned causal discovery (Stage 8)
+dice-ml==0.12                  # diverse multi-feature counterfactuals (Stage 10)
+stable-baselines3==2.8.0       # PPO/SAC (Stage 7)
+sb3-contrib==2.8.0             # MaskablePPO (action masking, Stage 7)
+gymnasium==1.2.3               # RL env API (Stage 7)
+
+# --- Computer vision --------------------------------------------------------
+ultralytics==8.3.40
+opencv-python-headless==4.10.0.84
+
+# --- NLP --------------------------------------------------------------------
+transformers==4.46.3
+
+# --- Metrics & monitoring ---------------------------------------------------
+prometheus-client==0.21.1
+
+# --- Caching ----------------------------------------------------------------
+cachetools==5.5.0
+
+# --- Hyperparameter tuning --------------------------------------------------
+optuna==4.1.0
+
+# --- OT/IT bridge: OPC UA + MQTT Sparkplug B (Stage 15) ---------------------
+paho-mqtt==2.1.0
+asyncua==1.1.5                 # OPC UA async client+server (ISA-95 nodes; Aes256Sha256RsaPss interim, PQC overlay @18)
+# Sparkplug B v3.0 uses a real protobuf payload compiled from the canonical Eclipse sparkplug_b.proto.
+# protoc is build-time only (grpcio-tools); the RUNTIME needs just `protobuf`. grpcio-tools 1.81 pulls
+# protobuf 6.x which BREAKS TensorFlow 2.15 (dice-ml/Stage 10, needs protobuf<5) -> pin the 1.62.x line + protobuf 4.x.
+grpcio-tools==1.62.3          # build-time: compile sparkplug_b.proto -> sparkplug_b_pb2.py (protobuf-4.x compatible)
+protobuf>=4.25,<5.0           # TF-2.15-safe; OTLP serialize verified working at 4.25.9 (research §25.4)
+# VDA 5050 (Stage 16): generate Pydantic models from the vendored v2.1.0 JSON schemas (build-time; CI vda5050-schema-validate).
+datamodel-code-generator==0.64.1   # build-time: schemas/*.json -> models/*.py (compile_models.sh); jsonschema validates payloads
+
+# --- Discrete-event simulator (Stage 2) -------------------------------------
+# SimPy replaces the random-tick injector in backend/simulation/engine.py.
+# See KB_05_Simulation_Spec.md + backend/simulation/sim_world.py.
+simpy==4.1.1
+
+# --- Voice (STT / TTS) ------------------------------------------------------
+# openai-whisper==20240930
+webrtcvad==2.0.10
+
+# --- Data versioning (DVC) --------------------------------------------------
+dvc[s3]==3.58.0
+
+# --- Test harness (Stage 1) -------------------------------------------------
+pytest==8.3.4
+pytest-asyncio==0.24.0
+pytest-timeout==2.4.0    # per-test timeouts: pinpoint hangs (Stage 11 ws_broker, Stage 11.5 MCP stdio)
+
+# --- Utilities --------------------------------------------------------------
+python-dotenv==1.0.1
+python-multipart==0.0.20
+orjson==3.10.12
+
+# Stage 27 (resilience & anti-fragility, research §38.2): SPIFFE workload identity — X509Source (auto-rotating
+# SVIDs from the SPIRE Workload API) + SVID-based mutual TLS for the A2A boundary (closes R4/G-4 authentication).
+# HewlettPackard py-spiffe, Apache-2.0, free (Rule 9).
+spiffe==0.3.0
+spiffe-tls==0.4.0

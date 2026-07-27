@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stage 7 Explainer — RL Intervention: PPO substrate, safety shield, and an honest "rules win"</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--border:#30363d;--text:#e6edf3;
+        --muted:#9da7b3;--accent:#58a6ff;--green:#3fb950;--amber:#d29922;--red:#f85149;--purple:#bc8cff}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.65}
+  .wrap{max-width:1040px;margin:0 auto;padding:32px 24px 80px}
+  header{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:28px}
+  h1{font-size:1.7rem;margin:0 0 8px}
+  h2{font-size:1.3rem;margin:42px 0 14px;padding-top:20px;border-top:1px solid var(--border);color:var(--accent)}
+  .sub{color:var(--muted);font-size:.95rem}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.9rem}
+  th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--accent)}
+  tr:nth-child(even) td{background:var(--panel)}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin:14px 0}
+  .verdict{border-left:4px solid var(--accent)} .good{border-left:4px solid var(--green)}
+  .warn{border-left:4px solid var(--amber)} .bad{border-left:4px solid var(--red)}
+  code{background:var(--panel2);padding:1px 6px;border-radius:4px;font-size:.85em}
+  .tag{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.75rem;font-weight:600;margin-right:6px}
+  .tag.built{background:#1f3d2b;color:var(--green)} .tag.planned{background:#2a2a3d;color:var(--purple)}
+  .tag.measured{background:#1f2d3d;color:var(--accent)}
+  .toc{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 22px;columns:2}
+  @media(max-width:720px){.toc{columns:1}}
+  .toc a{display:block;padding:2px 0;font-size:.92rem;color:var(--accent);text-decoration:none}
+  ul{padding-left:22px} li{margin:5px 0} a{color:var(--accent)}
+  .big{font-size:1.2rem;font-weight:700}
+  .footer{margin-top:44px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Stage 7 — RL Intervention: a real PPO substrate, a safety shield, and an honest result</h1>
+  <div class="sub">Stage explainer · 2026-06-12 · task <code>tasks/STAGE_07_rl_policy_intervention.md</code> ·
+  ADR <code>compliance/decision-logs/2026-06-12_rl_intervention_ppo.md</code>. Every number is measured output of
+  seeded runs or a recorded training metric. The headline result is a deliberate, documented negative-vs-rules —
+  not a manufactured win.</div>
+</header>
+
+<nav class="toc">
+  <a href="#s1">1. What this stage built &amp; the honest verdict</a>
+  <a href="#s2">2. The measured eval (paired CRN + CI)</a>
+  <a href="#s3">3. How it works (file by file)</a>
+  <a href="#s4">4. The safety shield</a>
+  <a href="#s5">5. Why rules win (and why that's the right call)</a>
+  <a href="#s6">6. What changed / what did NOT</a>
+  <a href="#s7">7. What Stage 8 starts with</a>
+</nav>
+
+<h2 id="s1">1. What this stage built &amp; the honest verdict</h2>
+<div class="card verdict">
+<p>Stage 7 turns the INTERVENE step of the self-healing loop (KB_25 step 4) from a single deterministic rule into
+a real, trained <strong>reinforcement-learning substrate</strong>: a from-scratch PPO agent that learns to
+allocate a contended maintenance crew across machines that crack at overlapping times — wrapped in a hard
+<strong>safety shield</strong> and evaluated honestly against the existing rules.</p>
+<p class="big">The honest verdict: the rules are near-optimal at this scope, PPO does not beat them, so the rules
+remain the default chooser. PPO ships trained + safety-shielded as the learnable substrate for Stage 8.</p>
+<p>This is the project's "<em>the better policy wins, not the fancier one</em>" rule applied literally. We built a
+real RL system, tested it rigorously, and reported that it doesn't (yet) earn the default slot — which is far more
+valuable and credible than forcing a marginal win on a problem that doesn't need RL yet.</p>
+</div>
+
+<h2 id="s2">2. The measured eval <span class="tag measured">MEASURED</span></h2>
+<div class="card good">
+<p>8 paired seeds (common random numbers — identical crack campaigns per arm), capacity-1 maintenance crew,
+5 cracks/episode, event-driven. Harness: <code>backend/training/stage_07_rl_intervention/eval.py</code>; report:
+<code>backend/training/evals/stage07/results.{json,md}</code>. This resolves <strong>G-046</strong> (the Stage-6
+audit asked for CRN pairing + confidence intervals).</p>
+<table>
+<tr><th>Chooser</th><th>Mean crack-breakdowns (±95% CI)</th><th>Reading</th></tr>
+<tr><td>no_intervention</td><td>4.0 ± 0.52</td><td>negative control — the do-nothing floor</td></tr>
+<tr><td><strong>rules_priority (default)</strong></td><td><strong>0.375 ± 0.36</strong></td><td>near-optimal hand rule</td></tr>
+<tr><td>ppo_shield</td><td>0.875 ± 0.25</td><td>learns; crushes do-nothing; below rules</td></tr>
+</table>
+<p>Paired PPO−rules breakdown difference: <strong>+0.5 ± 0.37</strong> (PPO has slightly more breakdowns; the CI
+excludes 0, so the gap is real but small). PPO training return measurably improved (−160.8 → −134.0,
+<code>training_learned=true</code>), and PPO+shield beats no-intervention 4× over — so the pipeline genuinely
+learns; it just doesn't beat a near-optimal rule.</p>
+</div>
+
+<h2 id="s3">3. How it works (file by file)</h2>
+<table>
+<tr><th>Component</th><th>File</th><th>What it does</th></tr>
+<tr><td>RL environment</td><td><code>backend/training/stage_07_rl_intervention/env.py</code></td><td>Headless, seeded SimWorld wrapper. <strong>Capacity-1 maintenance crew</strong> (the constraint that makes prioritisation matter) + multi-crack episodes. <strong>Event-driven</strong>: control returns to the agent only at real decision points (≥1 at-risk machine + free crew), concentrating the learning signal. Reward = throughput − breakdown penalty − maintenance occupancy − dense risk-exposure shaping.</td></tr>
+<tr><td>PPO (from scratch)</td><td><code>…/ppo.py</code></td><td>PPO-clip + GAE-λ, shared-trunk actor-critic MLP (2×64). torch CPU + numpy only — <strong>no stable-baselines3 / gymnasium</strong> (free-cost, auditable). Verified correct on a trivial bandit (<code>test_ppo_learns_on_bandit</code>).</td></tr>
+<tr><td>Training</td><td><code>…/train.py</code> + <code>config.yaml</code></td><td>Trains → <code>models/rl_intervention_policy.{pt,metrics.json}</code> (seed 7, 24k steps, ~254 s CPU). Metrics record the honest result.</td></tr>
+<tr><td>Honest eval</td><td><code>…/eval.py</code></td><td>3-way paired-CRN comparison + 95% CIs. Reports the measured delta; never asserts a winner.</td></tr>
+<tr><td>Inference glue + shield</td><td><code>backend/ml/intervention_rl.py</code></td><td><code>RLInterventionPolicy</code>: loads the net (<code>weights_only=True</code> — no pickle exec surface), <code>act()</code>/<code>decide()</code> → <code>InterventionDecision</code>; honest <code>ModelUnavailableError</code>; the safety shield (§4).</td></tr>
+<tr><td>Pluggable seam</td><td><code>backend/services/intervention_policy.py</code></td><td><code>select_chooser("rules"|"rl")</code> + <code>DEFAULT_CHOOSER="rules"</code>. The rules stay the per-machine default; the RL fleet chooser is available + eval-validated.</td></tr>
+</table>
+
+<h2 id="s4">4. The safety shield (shielded RL)</h2>
+<div class="card warn">
+<p>The ml-engineer mandate forbids shipping a policy that "allows known-unsafe actions even at low probability." A
+stochastic neural policy can't satisfy that alone. So the learned net is wrapped by a hard shield: <strong>if the
+crew is free and any at-risk machine's risk ≥ critical (0.85), maintenance is FORCED on the highest-risk machine
+regardless of what the net sampled.</strong> Observed live: the raw net chose stage 9 (wasteful), the shield
+forced the genuinely at-risk stage 3. Verified by <code>test_shield_forces_maintenance_on_critical_proximity</code>.
+This guarantees the shipped policy never ignores a near-certain failure — the safety floor is a rule, the learning
+sits on top. (Still sim-only; the Stage-17 functional-safety wrapper must precede any real-actuator use.)</p>
+</div>
+
+<h2 id="s5">5. Why rules win — and why that's the right call</h2>
+<div class="card">
+<ul>
+<li><strong>The problem is near-trivial at v0.</strong> One intervention type (preventive maintenance), one crew, uniform crack ETAs → "if a machine is at-risk and the crew is free, maintain the most-urgent one" is almost optimal. The eval shows greedy and priority rules tie, and both leave only 0.375 breakdowns/episode.</li>
+<li><strong>PPO is not broken</strong> — it learns a trivial bandit cleanly and beats no-intervention here 4×. It simply has little headroom to beat a near-optimal rule.</li>
+<li><strong>Forcing a "win" would be theatre.</strong> Given the high-variance downtime metric (the Stage-6 audit's G-046 warning), it would be easy to cherry-pick a seed where PPO looks better. We refused: CRN pairing + CIs + reporting the unfavourable result.</li>
+<li><strong>The value is the substrate, not a v0 victory:</strong> a reusable RL env + auditable PPO + paired-CI eval harness + the shielded-RL safety pattern — the foundation Stage 8 needs when the action space grows beyond what hand-rules can cover.</li>
+</ul>
+</div>
+
+<h2 id="s6">6. What changed / what did NOT</h2>
+<div class="card">
+<p><strong>Added:</strong> the <code>stage_07_rl_intervention/</code> training package, <code>ml/intervention_rl.py</code>,
+<code>models/rl_intervention_policy.{pt,metrics.json}</code>, model card, ADR, 14 tests, the Stage-7 eval report.
+<strong>Modified:</strong> <code>intervention_policy.py</code> (added <code>select_chooser</code>/<code>DEFAULT_CHOOSER</code>).</p>
+<p><strong>Did NOT change</strong> (deliberate, honest):</p>
+<ul>
+<li><span class="tag built">ZERO regression</span> <code>sim_world.py</code> and <code>slice_runner.py</code> untouched — the crew constraint lives in the env, so all 32 Stage-6 slice tests still pass.</li>
+<li><span class="tag built">AUDIT 396 → 396</span> additive ML stage, no new theatrical patterns; closed with <code>--no-baseline-drop</code>. The remaining RL-flavoured theatre (<code>ml/rl_policy.py</code> navigation stub, <code>decision_engine.py</code>) is a separate subsystem owned by Stage 11 — de-mocking it here would entangle subsystems or game the audit metric (rejected, ADR D6).</li>
+<li><span class="tag planned">RULES STAY DEFAULT</span> the PPO chooser is available via <code>select_chooser("rl")</code> but is not the default — per the measured result.</li>
+</ul>
+</div>
+
+<h2 id="s7">7. What Stage 8 starts with</h2>
+<div class="card">
+<ul>
+<li><strong>A working RL substrate</strong> (env + PPO + paired-CI eval) ready for the richer recovery action space: self-repair / robot-fixer dispatch / backup-online / slow-and-catch-up (G-019/G-020/G-025) — where rules will not scale and RL can genuinely earn the default slot.</li>
+<li><strong>The safety-shield pattern</strong> to keep any future learned policy provably safe.</li>
+<li><strong>The diagnose interface</strong> (<code>services/diagnosis.py::Diagnosis</code>) for Stage 8 to replace the deterministic ranking with a causal world-model behind the same contract.</li>
+<li><strong>Honest debt carried:</strong> G-035 (real-telemetry re-fit before any production claim); the full multi-action RL win is Stage 8/11.</li>
+</ul>
+</div>
+
+<div class="footer">
+Generated 2026-06-12 (ml-engineer + backend-engineer personas). Verify: <code>cd backend && python -m pytest
+tests/test_intervention_rl.py -q</code> · <code>python training/stage_07_rl_intervention/train.py --config
+training/stage_07_rl_intervention/config.yaml</code> · <code>python training/stage_07_rl_intervention/eval.py</code>.
+Honesty: PPO does not beat the rules at v0 and we say so; all numbers are sim-measured under calibrated assumptions
+(G-035 gates real-world claims); the safety shield is a rule, not learned. Independent review:
+<code>audits/STAGE_07_independent_review.md</code>.
+</div>
+</div>
+</body>
+</html>

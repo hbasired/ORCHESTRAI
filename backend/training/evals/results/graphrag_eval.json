@@ -1,0 +1,9 @@
+{
+  "honest_label": "SimWorld/SOP-corpus scale eval \u2014 NOT a public benchmark (real-pilot corpus = G-035)",
+  "in_domain_n": 6,
+  "out_of_domain_n": 4,
+  "grounded_answer_rate": 1.0,
+  "honest_empty_rate": 1.0,
+  "graph_citation_precision": 1.0,
+  "note": "grounded_answer_rate = in-domain questions that returned a real citation; honest_empty_rate = out-of-domain questions that correctly refused to ground (the anti-hallucination property)."
+}

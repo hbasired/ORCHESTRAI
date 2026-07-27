@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strategic Product Reset — Change Explainer (2026-06-11)</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --border:#30363d;
+    --text:#e6edf3; --muted:#9da7b3; --accent:#58a6ff; --green:#3fb950;
+    --amber:#d29922; --red:#f85149; --purple:#bc8cff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+  .wrap{max-width:1080px;margin:0 auto;padding:32px 24px 80px}
+  header{border-bottom:1px solid var(--border);padding-bottom:24px;margin-bottom:32px}
+  h1{font-size:1.9rem;margin:0 0 8px}
+  h2{font-size:1.4rem;margin:48px 0 16px;padding-top:24px;border-top:1px solid var(--border);color:var(--accent)}
+  h3{font-size:1.05rem;margin:22px 0 8px}
+  .sub{color:var(--muted);font-size:.95rem}
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.88rem}
+  th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--accent)}
+  tr:nth-child(even) td{background:var(--panel)}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px 20px;margin:16px 0}
+  .verdict{border-left:4px solid var(--accent)} .good{border-left:4px solid var(--green)}
+  .warn{border-left:4px solid var(--amber)} .bad{border-left:4px solid var(--red)}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+  .toc{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 24px;columns:2}
+  @media(max-width:760px){.toc{columns:1}}
+  .toc a{display:block;padding:2px 0;font-size:.92rem}
+  code{background:var(--panel2);padding:1px 6px;border-radius:4px;font-size:.85em}
+  .tag{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.75rem;font-weight:600;margin-right:6px}
+  .tag.new{background:#1f3d2b;color:var(--green)} .tag.mod{background:#1f2d3d;color:var(--accent)}
+  .tag.fix{background:#3d331f;color:var(--amber)} .tag.frozen{background:#2a2a3d;color:var(--purple)}
+  ul{padding-left:22px} li{margin:4px 0}
+  .footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Strategic Product Reset — What Changed and Why</h1>
+  <div class="sub">2026-06-11 · Out-of-band governance/product reset (not a numbered stage) · ADR:
+  <code>compliance/decision-logs/2026-06-11_strategic_product_reset.md</code> · Research trail:
+  <code>research/initial-research.md §14</code> · Audit baseline before AND after: <strong>402</strong> (no code touched).</div>
+</header>
+
+<nav class="toc">
+  <a href="#s1">1. Why this reset happened</a>
+  <a href="#s2">2. Every change made (file by file)</a>
+  <a href="#s3">3. Loopholes: fixed vs ledgered</a>
+  <a href="#s4">4. PRD v3 — the consolidation map</a>
+  <a href="#s5">5. Stage 6 decision &amp; roadmap deltas</a>
+  <a href="#s6">6. New role: product-manager</a>
+  <a href="#s7">7. What did NOT change</a>
+  <a href="#s8">8. Sources &amp; cross-references</a>
+</nav>
+
+<h2 id="s1">1. Why this reset happened</h2>
+<div class="card verdict">
+<p>The operator requested an irregular system check: find loopholes and fix them, research whether the finished
+product will actually be adopted (and by whom, against whom, for what money), create a new PRD, add a
+product-manager discipline, and define what gets built next — all honest, sourced, and without faking anything.</p>
+<p>Three internal facts made the timing right:</p>
+<ul>
+<li><strong>CTO Checkpoint #1</strong> had ruled "spec-deep, code-thin — freeze new spec, build ONE vertical slice before widening." Stage 6 was sitting as an empty TBD skeleton awaiting exactly this decision.</li>
+<li><strong>The PRD was a four-file chain</strong> (v2.0→v2.1→v2.2→v2.3) a reader had to merge mentally — and the hook protecting "frozen" PRDs only covered v1, so the freeze rule was unenforced where it mattered.</li>
+<li><strong>CLAUDE.md had gone stale twice</strong> (wrong baseline, wrong "next stage"), proving the docs needed an anti-staleness mechanism, not just a correction.</li>
+</ul>
+<p>And three external facts (June 2026 research) made it urgent: fleet orchestration commoditized
+(InOrbit open-sourced OpenRobOps), Cisco bought Galileo (the agent-reliability category validated and vacated),
+and the EU AI Act got fixed dates (Annex III: 2 Dec 2027) — together re-anchoring the moat on
+<strong>trust stack × causal self-healing above commodity orchestration</strong>.</p>
+</div>
+
+<h2 id="s2">2. Every change made (file by file)</h2>
+<table>
+<tr><th>File</th><th>Change</th><th>Why / what it closes</th></tr>
+<tr><td><code>research/initial-research.md</code></td><td><span class="tag mod">APPEND</span> §14 (2026-06-11): market sizing, competitor deltas, regulatory/crypto clocks, adoption economics, protocol maturity, decision impacts — every figure with URL</td><td>Mandatory research protocol; the evidence base for everything below</td></tr>
+<tr><td><code>research/market-viability-2026-06/index.html</code></td><td><span class="tag new">NEW</span> 12-section sourced analysis: verdict, TAM/SAM/SOM, competitor landscape, 4 perceptual maps, SWOT, positioning, gap analysis, problem→solution fit, adoption path, startup viability, what-must-be-built, 26 sources</td><td>The operator's market/viability mandate, refreshing the 2026-05-31 analysis with June data</td></tr>
+<tr><td><code>PRD-ai-embodied-agent-v3.md</code></td><td><span class="tag new">NEW</span> standalone authoritative PRD: consolidates v2.0–v2.3 + adds problems matrix, ICP/personas, GTM playbook, monetization options, business metrics, de-risked roadmap, honest viability verdict. Zero new build stages</td><td>Ends the four-file chain; sharpens the niche (autonomous × certifiable × neutral × provable); PRD work now has one source of truth</td></tr>
+<tr><td><code>PRD v1, v2.0, v2.1, v2.2, v2.3</code></td><td><span class="tag frozen">FROZEN</span> (no content edits made; now hook-enforced archival)</td><td>Hard rule 6 finally enforced for ALL versions</td></tr>
+<tr><td><code>.claude/hooks/pre_tool_use.sh</code></td><td><span class="tag fix">FIX</span> rule 4 generalized: blocks edits to ANY existing <code>PRD-ai-embodied-agent*.md</code>; creating the next version file stays allowed; no env-var escape</td><td>Closes loophole G-037 (v2.x PRDs were editable)</td></tr>
+<tr><td><code>knowledge-base/KB_26_Product_Market_Strategy.md</code></td><td><span class="tag new">NEW</span> strategy layer: sizing, ICP, problems matrix, competitive snapshot + deltas, positioning + claim discipline, monetization, GTM, viability verdict, CTO-checkpoint review cadence</td><td>Gives the product-manager role a home; wins over KB_11 on positioning conflicts</td></tr>
+<tr><td><code>knowledge-base/KB_11_Pitch_Strategy.md</code></td><td><span class="tag mod">MOD</span> strikethrough correction of the "EU AI Act Art. 14 compliant out of the box" overclaim; June-2026 comparables appended (Galileo→Cisco, InOrbit, Ati/GRID, physical-AI funds); KB_26 cross-pointer; last-updated bumped</td><td>Honesty discipline — claims must match build status; old content preserved per strikethrough rule</td></tr>
+<tr><td><code>knowledge-base/KB_README.md</code></td><td><span class="tag mod">MOD</span> KB_26 row added; "18 body files"→KB_01–KB_26; "15-stage plan"→25-stage roadmap (PRD v3 §18); last-updated bumped</td><td>Index staleness fixed</td></tr>
+<tr><td><code>.claude/skills/product-manager/SKILL.md</code></td><td><span class="tag new">NEW</span> 12th role persona (7-section format): owns PRD chain, KB_26, research artifacts; forbidden from code and uncited figures; scope expansion requires ADR + CTO alignment</td><td>The operator's product-manager mandate, wired into the project's role system</td></tr>
+<tr><td><code>scripts/start-task.sh</code></td><td><span class="tag mod">MOD</span> slug→role mapping: <code>('product-manager', [market, gtm, pricing, positioning, persona, icp, viability, pitch, prd])</code> appended before fallback</td><td>Product-flavored stages now auto-route</td></tr>
+<tr><td><code>.claude/hooks/lib/context_loader.py</code></td><td><span class="tag mod">MOD</span> KEYWORD_TABLE row for product-manager (no PATH_PREFIX entry — research/ is shared)</td><td>/begin suggests the role for product-flavored task docs</td></tr>
+<tr><td><code>SKILLS.md</code></td><td><span class="tag mod">MOD</span> "Eleven"→"Twelve"; product-manager row added</td><td>Persona index accurate</td></tr>
+<tr><td><code>.claude/skills/agentic-governance-engineer/SKILL.md</code></td><td><span class="tag mod">MOD</span> hand-off line: product/market work → product-manager</td><td>Default role knows when to hand off</td></tr>
+<tr><td><code>CLAUDE.md</code></td><td><span class="tag fix">FIX</span> §1 authoritative spec → PRD v3 (+v3 ADR link); §3 product-manager row; §4 rule 1 baseline 402 + "file is source of truth"; §4 rule 6 reworded (all PRDs frozen, hook-enforced); §5 out-of-band reset pattern documented; §8 PRD v3 + KB_26 rows; §11 retitled "Current Stage Pointer" with anti-staleness rule + accurate snapshot</td><td>Closes the staleness loophole class, not just the instances</td></tr>
+<tr><td><code>tasks/STAGE_06_TBD.md → tasks/STAGE_06_vertical_slice_predict_diagnose.md</code></td><td><span class="tag new">RENAME + AUTHOR</span> full task doc: Vertical Slice v0 (predict→diagnose→intervene, sim-only, measured A/B), 8 acceptance criteria, owed audits (G-031, G-001) as pre-requisites, Stage-5 hand-off preserved</td><td>CTO #1's vertical-slice gate becomes the next executable task; the fundability artifact gets built next</td></tr>
+<tr><td><code>audits/OPEN_GAPS_LEDGER.md</code></td><td><span class="tag mod">APPEND</span> G-037 (PRD hook — RESOLVED), G-038 (role-map duplication/fragility), G-039 (append-only not hook-enforced), G-040 (junk dir), G-041 (OpenRobOps/Open-RMF integration), G-042 (humanoid adapters), G-043 (reference pilot = fundability gap)</td><td>Loopholes + market-driven viability gaps tracked with target stages</td></tr>
+<tr><td><code>compliance/decision-logs/2026-06-11_strategic_product_reset.md</code></td><td><span class="tag new">NEW ADR</span> decisions D1–D8, consequences, 5 rejected alternatives</td><td>The decision record (immutable on creation)</td></tr>
+<tr><td><code>research/strategic-reset-explainer/index.html</code></td><td><span class="tag new">NEW</span> this document</td><td>The operator-requested change explainer</td></tr>
+<tr><td><code>knowledge-base/KB_TASK_LOG.md</code></td><td><span class="tag mod">APPEND</span> out-of-band entry (Stage-0-refresh shape): Shipped / Skipped / Learned / Next-stage adjustments / Files touched / "No code merged"</td><td>The log stays the single answer to "what just happened"</td></tr>
+</table>
+
+<h2 id="s3">3. Loopholes: fixed vs ledgered</h2>
+<div class="card good">
+<h3>Fixed in this reset</h3>
+<ul>
+<li><strong>PRD freeze unenforced (G-037):</strong> hook rule 4 covered only v1 → generalized to all existing PRD files. Verified: editing v2.0 now blocks (exit 2); creating v4 allows (exit 0).</li>
+<li><strong>CLAUDE.md staleness (two instances + the pattern):</strong> baseline figure, "next stage" pointer, and PRD pointers corrected; §11 now carries an explicit "snapshot only — /begin wins; update at every stage close" rule so the class of bug is named, not just patched.</li>
+<li><strong>Missing product-manager discipline:</strong> role created + wired in all four places (skill dir, start-task.sh, context_loader.py, SKILLS.md/CLAUDE.md).</li>
+<li><strong>Index drift:</strong> SKILLS.md count, KB_README file list and roadmap reference.</li>
+</ul>
+</div>
+<div class="card warn">
+<h3>Found and ledgered (deliberately not fixed out-of-band)</h3>
+<ul>
+<li><strong>G-038</strong> — role mapping duplicated across two executables + substring fragility (e.g. devops keyword <code>ci</code> matches any slug containing <code>pricing</code>) → Stage 10.5 cleanup, paired with G-015.</li>
+<li><strong>G-039</strong> — KB_TASK_LOG / research log append-only is convention, not hook-enforced → Stage 10.5.</li>
+<li><strong>G-040</strong> — stray <code>backend;C\</code> junk directory at repo root → deleted at next code stage after reference check.</li>
+<li><strong>G-032 / G-036</strong> (pre-existing code gaps: frontend type drift; demand-forecaster wiring) — operator decision: code fixes stay inside numbered stages; both keep their target stages (11).</li>
+<li><strong>G-031 / G-001</strong> (owed independent CTO pass + Stage 3 re-audit) — operator decision: now hard pre-requisites of Stage 6, run at stage open.</li>
+</ul>
+</div>
+
+<h2 id="s4">4. PRD v3 — the consolidation map</h2>
+<table>
+<tr><th>PRD v3 §</th><th>Content</th><th>Came from</th></tr>
+<tr><td>0 Document control</td><td>Version lineage, freeze statement, conflict rule, honesty contract</td><td>NEW</td></tr>
+<tr><td>1 One-liner / niche / differentiator</td><td>The four-way niche; Causal Self-Healing Engine as headline over the three-leg foundation</td><td>v2.2.1 + v2.3.1, sharpened with June market evidence</td></tr>
+<tr><td>2 Market &amp; problems matrix</td><td>P1–P7 problem→buyer→alternative→answer→stage→status; PQC claim discipline</td><td>NEW (research §14)</td></tr>
+<tr><td>3 Spec &amp; objectives</td><td>O1–O7 + non-goals (now incl. "not a fleet manager")</td><td>v2.1.1 + new O7 (Heal)</td></tr>
+<tr><td>4–11 Architecture…Governance</td><td>Six-layer spine, standards, A2A/MCP, PQC+KeyProvider, safety wrapper, memory, dashboard, compliance mapping with verified dates</td><td>v2.0 §2–§9 + v2.1.4/v2.1.5/v2.1.8, compressed + status-tagged</td></tr>
+<tr><td>12 Self-healing engine</td><td>The loop, DL/RL stack, N-domain, dynamic features — honesty section intact</td><td>v2.3 in full</td></tr>
+<tr><td>13 Pillars &amp; posture</td><td>Pillar table + per-band posture, June 2026 refresh</td><td>v2.2.2 + research §14.2</td></tr>
+<tr><td>14–16 ICP / GTM / Monetization</td><td>Personas + buying committee; land→prove→pilot→SI-channel; 3 labeled monetization options</td><td>NEW (research §14.4/§14.5, KB_11 base)</td></tr>
+<tr><td>17 Evals &amp; metrics</td><td>SLO tables A–D merged + new E (business metrics); production-grade workflow requirement</td><td>v2.1.2 + v2.0 §11 + v2.1.6 + NEW E</td></tr>
+<tr><td>18 Roadmap</td><td>Re-sequenced to actuals; Stage 6 = Vertical Slice v0; no new stages</td><td>v2.0 §10 corrected to reality</td></tr>
+<tr><td>19–21 Risks / process / links</td><td>9 refreshed risks + honest verdict; lifecycle reqs + product-manager; document map</td><td>v2.0 §12 + v2.2.4/v2.2.5 + research §14.6</td></tr>
+</table>
+
+<h2 id="s5">5. Stage 6 decision &amp; roadmap deltas</h2>
+<div class="card verdict">
+<p><strong>Stage 6 = Vertical Slice v0</strong> — predict → diagnose → intervene, closed-loop inside SimPy on the
+machine-failure scenario, with a <strong>measured A/B</strong> (downtime with the loop ON vs OFF) as the headline
+artifact. Rationale: CTO #1's explicit gate; the predict leg already exists twice (XGBoost PR-AUC 0.847, LSTM
+MAPE 21%); a third predictor before any diagnose/intervene would repeat the breadth-outruns-build failure. The
+slice needs no LLM (diagnose v0 is deterministic) — free-cost safe — and no safety wrapper (sim-only, no real
+actuators).</p>
+<p><strong>Roadmap deltas (no new stages):</strong> 4 = PdM and 5 = demand recorded as actually shipped (defect
+detection moved to Stage 9); 6.5 energy deferred until after the slice; 7 (PPO) and 8 (world model + causal twin)
+re-described as deepening the slice's intervene/diagnose legs behind the same interfaces; 11 = the production
+slice (durable runtime, HITL, repair dispatch, active diagnosis — gaps G-005/G-014/G-025/G-026 unchanged);
+16 now explicitly integrates OpenRobOps/Open-RMF (new gap G-041). The CTO remediation map was reinterpreted via
+ADR (v0 at 6, production at 11), never edited.</p>
+</div>
+
+<h2 id="s6">6. New role: product-manager</h2>
+<div class="card">
+<p>The 12th persona (<code>.claude/skills/product-manager/SKILL.md</code>). Mission: own the product-market-fit
+evidence and the PRD chain — <em>without expanding build scope</em> (the CTO freeze verdict binds it explicitly).
+Key contracts: every number sourced or labeled; research-log append every session; PRD changes only as new
+version files; claims must match BUILT/PARTIAL/PLANNED status; never touches code. Owns KB_26; hands build work
+to engineering roles, regulatory verification to compliance-engineer, scope arbitration to cto-reviewer.
+Auto-routes via slug keywords (market, gtm, pricing, positioning, persona, icp, viability, pitch, prd) and
+/begin keyword suggestions. This reset was its first assignment.</p>
+</div>
+
+<h2 id="s7">7. What did NOT change</h2>
+<div class="card bad">
+<ul>
+<li><strong>No code:</strong> zero edits in <code>backend/</code> or <code>frontend-nextjs/</code>; audit baseline stayed exactly <strong>402</strong>; no <code>--baseline</code> rewrite, no <code>close-task.sh</code> (nothing closed).</li>
+<li><strong>No new build scope:</strong> zero stages added; N-domain heads, energy, dynamic features, twin upgrades all stay at their ledgered stages.</li>
+<li><strong>No edits to frozen records:</strong> all prior PRDs, all prior ADRs, all prior research sections, the CTO remediation map — untouched.</li>
+<li><strong>Debts still owed (now scheduled):</strong> independent CTO #1 pass (G-031) and Stage 3 independent re-audit (G-001) — Stage 6 pre-requisites; proxy-trained brains (G-035) — pilot re-fit; reference pilot (G-043) — Stage 22.</li>
+<li><strong>The honest caveat:</strong> the product remains spec-deep/code-thin until Stage 6+ ship. This reset improved the map, not the territory — deliberately, and it says so.</li>
+</ul>
+</div>
+
+<h2 id="s8">8. Sources &amp; cross-references</h2>
+<ul class="sub">
+<li>Decision record: <code>compliance/decision-logs/2026-06-11_strategic_product_reset.md</code> (D1–D8 + rejected alternatives)</li>
+<li>Evidence base: <code>research/initial-research.md §14</code> (all market figures with URLs) · <code>research/market-viability-2026-06/index.html</code> (26 numbered sources)</li>
+<li>New spec: <code>PRD-ai-embodied-agent-v3.md</code> · strategy: <code>knowledge-base/KB_26_Product_Market_Strategy.md</code></li>
+<li>Next task: <code>tasks/STAGE_06_vertical_slice_predict_diagnose.md</code> · gaps: <code>audits/OPEN_GAPS_LEDGER.md</code> (G-037..G-043)</li>
+<li>Prior context: <code>audits/CTO_1_review.md</code> · <code>research/market-analysis/index.html</code> (2026-05-31) · <code>research/system-explainer/index.html</code></li>
+</ul>
+
+<div class="footer">
+Generated 2026-06-11 by the Strategic Product Reset session (product-manager + agentic-governance-engineer personas).
+Honesty notes: this document describes documentation/governance/process changes only — no functional code changed;
+build-status statements reflect the repository at 2026-06-11 (Stages 0–5 closed, baseline 402); the viability claims
+it references are sourced or labeled qualitative in the companion artifacts.
+</div>
+</div>
+</body>
+</html>

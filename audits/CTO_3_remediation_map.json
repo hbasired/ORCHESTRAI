@@ -1,0 +1,51 @@
+{
+  "checkpoint": 3,
+  "date": "2026-06-20",
+  "scope": "Stages 11-14 (LangGraph durable runtime, MCP server suite, agent memory: audit_chain/Mem0/Neo4j ISA-95, observability/OTel, CDC ingestion, PQC foundations ML-DSA-65 KeyProvider, A2A protocol)",
+  "verdict": "ON TRACK, strongest checkpoint yet; architecture pillars real, deep, honestly deferred, and (for the first time) independently verified on live infra. Two completion gaps remain: runtime not yet wired to its MCP tools (G-059) + evidence pipeline does not cover the A2A boundary or enforce signatures (G-073/G-074); and the zero-trust/identity work the PQC+A2A primitives were built for is unstarted (G-063/G-064). Still proxy/benchmark-validated, no real actuator (Stage 22).",
+  "reviewer": "cto-reviewer persona (FRESH, INDEPENDENT agent; did NOT implement Stages 11-14; DYNAMIC verification on live Docker infra: audit.sh=364, verify-audit-chain.py=110 rows, cross-tenant memory probe, ADR+audit_chain ML-DSA-65 sig verification, a2a/crypto 18p1s + mcp/memory/observability 42p1s)",
+  "remediations": [
+    {"description": "Run the owed FORMAL different-agent independent review of Stage 12 (scripts/independent-audit.sh 12) now that fresh-agent tooling works; its dynamic verification is done, only the different-agent judgement is owed (G-062)", "target_stage": "15"},
+    {"description": "Refresh compliance/risk-register.md AT THIS CTO checkpoint (cadence unmet, last-reviewed 2026-06-15): add rows for the A2A interim-unauthenticated capability gate, the 79 legacy placeholder-sha256 audit_chain rows, the verify-audit-chain.py signature-check gap (G-073), and A2A trace blindness (G-074); update Last-reviewed", "target_stage": "15"},
+    {"description": "Wire the runtime graph to consume the mounted MCP StructuredTools for at least one node (route model/tool calls through MCP rather than direct Python import) so runtime decisions are genuinely MCP-mediated (G-059, OPEN through Stages 11.5/12/14)", "target_stage": "16"},
+    {"description": "Make scripts/verify-audit-chain.py signature verification load-bearing: fail (exit 1) on any non-placeholder audit_chain row whose ML-DSA-65 signature does not verify, and report the placeholder->ML-DSA-65 cutover seq explicitly so 'Audit chain OK' is not read as 'all rows post-quantum-signed' (G-073)", "target_stage": "19"},
+    {"description": "Instrument the uninstrumented OTel layers: add a2a.rpc.<method> spans + an audit_chain row per A2A capability call (G-074, the external trust boundary is currently trace- and audit-blind); add per-model ml.inference.* spans for the world-model/diagnose/explain/decide nodes (only failure_predictor is wrapped today); add a CDC ingestion span", "target_stage": "19"},
+    {"description": "Close the regulator-grade evidence gaps for EU AI Act Art-12: back-sign (or formally document the cutover for) the 79 legacy placeholder-sha256 audit_chain rows, and build the live message-cascade/latency observability surface (G-021)", "target_stage": "19"},
+    {"description": "Promote pip-audit (and confirm bandit) to BLOCKING CI gates (pip-audit is currently continue-on-error:true / warn-only despite its 'flip to required when Stage 11 deps clean' comment), or document the load-bearing-pin exception; generate a CycloneDX SBOM (G-065)", "target_stage": "18"},
+    {"description": "Adopt a NAMED zero-trust framework (CSA Agentic Trust / NIST SP 800-207 / OWASP Top-10 Agentic) and issue a per-internal-agent ML-DSA-65 identity (today only the single agent-identity alias signs ADRs/audit/cards; internal agents/tools are unsigned); scope MCP tools to per-tool capability authz + argument sanitisation + a signed tool manifest + rate-limiting; bind the A2A interim X-A2A-Peer-Key gate to real mTLS client-cert->peer_state (G-063/G-064)", "target_stage": "17"},
+    {"description": "Add DB-level tenant isolation (Postgres RLS) on mem0_memories as defense-in-depth behind the adapter's Python _authorize (a direct SQL client currently bypasses namespace isolation; adequate today with one in-process reader, but RLS is needed once multi-tenant)", "target_stage": "19"},
+    {"description": "Add a runtime determinism regression test: assert two runs of the same incident/thread_id produce identical traces + decisions, pinning the structural determinism the durable LangGraph runtime relies on (today determinism is only indirectly tested)", "target_stage": "21"},
+    {"description": "Prove the Groq->Ollama free-cost LLM fallback LIVE on a path that actually invokes an LLM (the self-healing runtime loop is LLM-free, so the fallback is code-real but run-unproven; NL-injection / 'ask the factory' G-022/G-023 are where it runs) — closes the long-standing CTO #1 #5 / CTO #2 R5 'prove it is real'", "target_stage": "16"},
+    {"description": "Carry forward the still-not-yet-due credibility constraints: real-fleet re-fit of all proxy/benchmark models (G-035) + a reference pilot with a published A/B (G-043)", "target_stage": "22"}
+  ],
+  "prior_checkpoint_verification": {
+    "cto_2_remediations_honored": 6,
+    "cto_2_remediations_not_yet_due": 2,
+    "cto_2_remediations_skipped": 0,
+    "honored_detail": [
+      "R1 (G-049/G-050 owed indep reviews + indep CTO #2): HONORED - 5 depth indep reviews PASS + CTO_2_independent_review.md CONCUR",
+      "R2 (process gaps G-015/G-038/G-039/G-048): HONORED - all RESOLVED in ledger",
+      "R3 (risk-register refresh): HONORED at Stage 11/12 (C-MAPSS/NEU/OSS/A2A/PQC/memory rows present) but going stale again - last-reviewed 2026-06-15, cadence unmet at CTO #3 -> R2 above",
+      "R4 (test harness G-044 lifespan+Neo4j): HONORED - G-044 RESOLVED, live suites boot",
+      "R5 (wire deepened models into runtime + prove Ollama): HONORED for runtime; PARTIAL for Ollama (fallback code-real but runtime is LLM-free, never exercises it -> re-routed R11)",
+      "R8 (placeholder-SHA256 ADR signing -> real ML-DSA-65 @13.5): HONORED + cryptographically VERIFIED (34/34 ADR footers real ML-DSA-65, spot-verified True; audit_chain new rows real ML-DSA-65, seq 110 verified True)"
+    ],
+    "not_yet_due_detail": [
+      "R6 (dependency provenance: lockfile + SBOM) -> Stage 22 (pip-audit job exists but warn-only; re-routed as R7 to Stage 18)",
+      "R7 (real-fleet re-fit G-035 + pilot G-043) -> Stage 22 (re-routed as R12)"
+    ],
+    "cto_2_owed_audits_paid": [
+      "G-049 (5 per-increment depth independent reviews) PAID 2026-06-14",
+      "G-050 (independent CTO #2 pass) PAID 2026-06-14"
+    ],
+    "note": "Cleanest prior-remediation scorecard across the three checkpoints: 6 honored, 2 not-yet-due, 0 skipped. The only carried independence debt is G-062 (formal different-agent pass on Stage 12 - dynamic verification done, different-agent judgement blocked by session limit); this CTO #3 being a real fresh-agent pass partly discharges the wave's independence but not Stage 12 specifically (routed R1)."
+  },
+  "owed": [
+    "G-062: formal different-agent independent review of Stage 12 (routed R1 -> Stage 15)",
+    "Risk-register refresh at this checkpoint (routed R2 -> Stage 15)"
+  ],
+  "new_gaps_for_ledger": [
+    {"id": "G-073", "description": "verify-audit-chain.py does not actually fail on a bad/garbage ML-DSA-65 signature (signature verify wrapped in try/except:pass + key resolved via a best-effort path); its 'Audit chain OK' attests hash linkage only, not signature validity. Also: 79 of 110 rows are legacy placeholder-sha256 (32-byte, kv 0), never back-signed.", "severity": "medium", "target_stage": "19"},
+    {"id": "G-074", "description": "A2A external federation surface (backend/a2a/: card serving, JSON-RPC dispatch, capability calls) emits ZERO OTel spans and writes no audit_chain rows - the one external trust boundary is invisible to the evidence pipeline. KB_15 requires spans on every layer.", "severity": "medium", "target_stage": "19"}
+  ]
+}

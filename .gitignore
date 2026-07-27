@@ -1,0 +1,130 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.env
+!.env.example
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Build outputs
+frontend/dist/
+frontend/build/
+frontend-nextjs/.next/
+frontend-nextjs/out/
+*.local
+
+# Logs
+logs/
+*.log
+
+# Testing
+.coverage
+.pytest_cache/
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# ML weights: tracked via Git LFS (see .gitattributes). Do NOT ignore the
+# extensions globally — LFS needs git to see them. We only ignore the
+# heavy intermediate /models/ runtime cache directory.
+models/
+
+# Data: ignore everything under data/ EXCEPT the scaffolding we want
+# visible. Real dataset binaries live behind DVC, not git.
+data/*
+!data/datasets/
+data/datasets/*
+!data/datasets/.gitkeep
+!data/datasets/CARD.template.md
+# Stage 25 (G-061): procedural-memory skills are DVC-versioned — the .dvc POINTER is git-tracked, the content is not.
+!data/skills.dvc
+
+# DVC remote store sibling
+/dvc-store/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Docker
+.docker/
+
+# Recordings
+recordings/
+
+# Temporary
+tmp/
+temp/
+*.tmp
+
+# Secrets
+*.pem
+*.key
+credentials.json
+firebase-credentials.json
+service-account.json
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Audit baseline is checked in deliberately (each stage tightens it).
+!.audit-baseline
+
+# Stage 13.5 software-tier key store (dev secrets; production uses HSM)
+backend/crypto/.keystore/
+
+# Stage 21 — DR/backups: artefacts are large + environment-specific; never commit them.
+/backups/
+*.dump
+*.rdb
+
+# Local credentials reference — never commit
+CREDENTIALS.md

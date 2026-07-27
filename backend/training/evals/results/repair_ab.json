@@ -1,0 +1,156 @@
+{
+  "design": "paired seeds, identical cracks; only difference = repair-dispatch vs passive MTTR",
+  "seeds": 10,
+  "hours": 6.0,
+  "control_mean_downtime_seconds": 21306.2,
+  "mean_downtime_saved_seconds": 10214.5,
+  "downtime_saved_pct": 47.9,
+  "ci95_saved_seconds": [
+    7696.0,
+    12733.1
+  ],
+  "ci_excludes_zero": true,
+  "honest_label": "SimWorld study (not a real fleet); real-data validation = G-035 (buyer-blocked)",
+  "rows": [
+    {
+      "seed": 42,
+      "control": {
+        "total_downtime_seconds": 26471.8,
+        "breakdowns": 23,
+        "repair_dispatches": 0
+      },
+      "dispatch": {
+        "total_downtime_seconds": 16977.1,
+        "breakdowns": 26,
+        "repair_dispatches": 22
+      },
+      "downtime_saved_seconds": 9494.7
+    },
+    {
+      "seed": 43,
+      "control": {
+        "total_downtime_seconds": 22768.0,
+        "breakdowns": 19,
+        "repair_dispatches": 0
+      },
+      "dispatch": {
+        "total_downtime_seconds": 10077.6,
+        "breakdowns": 21,
+        "repair_dispatches": 17
+      },
+      "downtime_saved_seconds": 12690.4
+    },
+    {
+      "seed": 44,
+      "control": {
+        "total_downtime_seconds": 17474.6,
+        "breakdowns": 18,
+        "repair_dispatches": 0
+      },
+      "dispatch": {
+        "total_downtime_seconds": 7131.3,
+        "breakdowns": 14,
+        "repair_dispatches": 11
+      },
+      "downtime_saved_seconds": 10343.3
+    },
+    {
+      "seed": 45,
+      "control": {
+        "total_downtime_seconds": 22998.0,
+        "breakdowns": 14,
+        "repair_dispatches": 0
+      },
+      "dispatch": {
+        "total_downtime_seconds": 9851.4,
+        "breakdowns": 18,
+        "repair_dispatches": 15
+      },
+      "downtime_saved_seconds": 13146.6
+    },
+    {
+      "seed": 46,
+      "control": {
+        "total_downtime_seconds": 26925.7,
+        "breakdowns": 12,
+        "repair_dispatches": 0
+      },
+      "dispatch": {
+        "total_downtime_seconds": 12874.2,
+        "breakdowns": 14,
+        "repair_dispatches": 13
+      },
+      "downtime_saved_seconds": 14051.5
+    },
+    {
+      "seed": 47,
+      "control": {
+        "total_downtime_seconds": 27790.4,
+        "breakdowns": 18,
+        "repair_dispatches": 0
+      },
+      "dispatch": {
+        "total_downtime_seconds": 12985.9,
+        "breakdowns": 20,
+        "repair_dispatches": 17
+      },
+      "downtime_saved_seconds": 14804.5
+    },
+    {
+      "seed": 48,
+      "control": {
+        "total_downtime_seconds": 19089.3,
+        "breakdowns": 17,
+        "repair_dispatches": 0
+      },
+      "dispatch": {
+        "total_downtime_seconds": 11316.7,
+        "breakdowns": 26,
+        "repair_dispatches": 22
+      },
+      "downtime_saved_seconds": 7772.6
+    },
+    {
+      "seed": 49,
+      "control": {
+        "total_downtime_seconds": 17943.1,
+        "breakdowns": 18,
+        "repair_dispatches": 0
+      },
+      "dispatch": {
+        "total_downtime_seconds": 10147.9,
+        "breakdowns": 15,
+        "repair_dispatches": 15
+      },
+      "downtime_saved_seconds": 7795.2
+    },
+    {
+      "seed": 50,
+      "control": {
+        "total_downtime_seconds": 16605.4,
+        "breakdowns": 15,
+        "repair_dispatches": 0
+      },
+      "dispatch": {
+        "total_downtime_seconds": 7977.2,
+        "breakdowns": 16,
+        "repair_dispatches": 13
+      },
+      "downtime_saved_seconds": 8628.2
+    },
+    {
+      "seed": 51,
+      "control": {
+        "total_downtime_seconds": 14995.2,
+        "breakdowns": 14,
+        "repair_dispatches": 0
+      },
+      "dispatch": {
+        "total_downtime_seconds": 11576.8,
+        "breakdowns": 17,
+        "repair_dispatches": 14
+      },
+      "downtime_saved_seconds": 3418.4
+    }
+  ]
+}

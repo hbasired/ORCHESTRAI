@@ -1,0 +1,8 @@
+{
+  "headerId": 0,
+  "timestamp": "2026-06-20T12:00:00Z",
+  "version": "2.1.0",
+  "manufacturer": "ACME",
+  "serialNumber": "AGV-1",
+  "connectionState": "ONLINE"
+}

@@ -1,0 +1,60 @@
+{
+  "suite": "detector_hardening",
+  "baseline_stage20": {
+    "detection_rate": 0.9935,
+    "false_positive_rate": 0.0156,
+    "note": "heuristic+kNN hybrid"
+  },
+  "learned_tier_cv": {
+    "tier": "learned_lr",
+    "k_folds": 5,
+    "threshold": 0.5,
+    "n_attacks": 153,
+    "n_benign": 64,
+    "detection_rate": 0.9935,
+    "false_positive_rate": 0.0,
+    "precision": 1.0,
+    "f1": 0.9967,
+    "tp": 152,
+    "fp": 0,
+    "tn": 64,
+    "fn": 1,
+    "note": "STRATIFIED 5-fold cross-validation (held-out) \u2014 NOT train-on-test; honest generalisation estimate"
+  },
+  "combined_detector_cv": {
+    "tier": "combined_heuristic_or_learned",
+    "k_folds": 5,
+    "n_attacks": 153,
+    "n_benign": 64,
+    "detection_rate": 1.0,
+    "false_positive_rate": 0.0,
+    "tp": 153,
+    "fp": 0,
+    "tn": 64,
+    "fn": 0,
+    "baseline_stage20": {
+      "detection_rate": 0.9935,
+      "false_positive_rate": 0.0156
+    },
+    "note": "held-out 5-fold CV of the combined detector (heuristic OR learned); classifier never train-on-test"
+  },
+  "behavioral_monitor": {
+    "n_anomalies": 5,
+    "n_controls": 4,
+    "detection_rate": 1.0,
+    "false_positive_rate": 0.0,
+    "tp": 5,
+    "fn": 0,
+    "fp": 0,
+    "tn": 4
+  },
+  "lift": {
+    "detection_rate": "0.9935 -> 1.0",
+    "false_positive_rate": "0.0156 -> 0.0"
+  },
+  "honest_notes": [
+    "All injection numbers are held-out 5-fold CV (classifier never train-on-test).",
+    "SimWorld/corpus scale \u2014 real-traffic + multilingual validation = G-035/pilot.",
+    "The binding actuation gate remains safety/validator (Rule 3); detectors are defence-in-depth."
+  ]
+}

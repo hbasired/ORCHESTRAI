@@ -1,0 +1,27 @@
+{
+  "checkpoint": 2,
+  "date": "2026-06-14",
+  "scope": "Stages 4-10 + the 2026-06-14 Stages 6-10 depth-hardening pass (5 increments)",
+  "verdict": "on track, materially stronger than CTO #1; one governance regression (shallow 6-10) caught and corrected; growing independent-review debt; still proxy/benchmark-validated, not real-fleet-validated",
+  "reviewer": "cto-reviewer persona (honest self-review; fresh-agent spawn + task-auditor unavailable in this environment; independent CTO #2 pass OWED = G-050)",
+  "remediations": [
+    {"description": "Run the 5 owed per-increment independent reviews (Stages 8/9/7/10/6 depth-hardening) via scripts/independent-audit.sh, and an independent CTO #2 pass via scripts/cto-review.sh --force, when the fresh-agent tooling is available (G-049 per-increment reviews; G-050 independent CTO #2)", "target_stage": "11"},
+    {"description": "Sweep the deferred CTO #2 process gaps: G-015 (next-task.sh string-sort), G-038 (slug->role mapping duplicated in start-task.sh + context_loader.py; add word-boundary matching), G-039 (PreToolUse hook to block destructive shrink of KB_TASK_LOG.md + research/initial-research.md), G-048 (close-task.sh OPEN_GAPS arithmetic fragility)", "target_stage": "11"},
+    {"description": "Refresh compliance/risk-register.md at this CTO checkpoint: correct stale stage numbers (defect=9 not 5, demand=5 not 6), add rows for C-MAPSS/NEU-CLS data provenance, the new OSS supply chain (causal-learn, dice-ml, stable-baselines3, sb3-contrib, gymnasium), and the pandas-2.2.3 pin that breaks tts<2.0; update Last-reviewed", "target_stage": "11"},
+    {"description": "Fix the test harness G-044: wrap the conftest client fixture in a lifespan manager (so state_manager/decision_engine/SimWorld initialize) and add Neo4j to the test stack, so the live app path (test_api, test_websocket_smoke) is actually exercised instead of returning 503/hanging", "target_stage": "11"},
+    {"description": "Wire the deepened models into the live runtime (LangGraph + decision persistence + HITL + active diagnosis + repair dispatch) and prove the Ollama-local LLM fallback is real (free-cost resilience vs Groq rate limits)", "target_stage": "11"},
+    {"description": "Add dependency provenance for the expanded OSS surface: hash-pinned lockfile + SBOM (causal-learn, dice-ml, stable-baselines3, sb3-contrib, gymnasium; dice-ml pulls TensorFlow); document the tts<2.0 breakage from the pandas pin", "target_stage": "22"},
+    {"description": "Carry forward the un-converted credibility constraints: real-fleet re-fit of all proxy/benchmark models (G-035) + a real pilot (G-043)", "target_stage": "22"},
+    {"description": "Replace placeholder-SHA256 ADR/decision-log signing with real ML-DSA-65 signatures", "target_stage": "13_5"}
+  ],
+  "prior_checkpoint_verification": {
+    "cto_1_remediations_honored": 3,
+    "cto_1_remediations_not_yet_due": 3,
+    "cto_1_owed_audits_paid": ["G-031 independent CTO #1 (2026-06-12)", "G-001 Stage 3 re-audit (2026-06-12)"],
+    "note": "CTO #1 remediation #2 (start-task.sh ledger surfacing) was refuted as unmet on 2026-06-12 but is NOW honored (wired 2026-06-12, start-task.sh:177). No skipped-and-now-due remediation remains."
+  },
+  "owed": [
+    "Independent CTO #2 pass via scripts/cto-review.sh --force (this is a caveated self-review; G-050)",
+    "Five per-increment independent reviews for the Stages 8/9/7/10/6 depth-hardening (task-auditor unavailable; G-049)"
+  ]
+}

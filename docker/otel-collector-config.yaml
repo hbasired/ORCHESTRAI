@@ -1,0 +1,40 @@
+# Stage 12.5 — OpenTelemetry Collector config (KB_15 §"OpenTelemetry collector config shape").
+# Receives OTLP (grpc 4317 / http 4318) from the backend and fans traces out to Langfuse + Phoenix.
+# The `debug` exporter lets the collector be smoke-tested ALONE (no Langfuse/Phoenix needed) — it logs received
+# spans so a CI/observability-smoke can confirm the app's OTLP spans actually arrive.
+receivers:
+  otlp:
+    protocols:
+      grpc: { endpoint: 0.0.0.0:4317 }
+      http: { endpoint: 0.0.0.0:4318 }
+
+processors:
+  batch: { send_batch_size: 1024, timeout: 5s }
+  resource:
+    attributes:
+      - key: service.name
+        value: ai-embodied-agent
+        action: upsert
+
+exporters:
+  # Langfuse ingests OTLP/HTTP (KB_15). LANGFUSE_TOKEN = base64("public_key:secret_key").
+  otlphttp/langfuse:
+    endpoint: http://langfuse-web:3000/api/public/otel
+    headers: { authorization: "Basic ${env:LANGFUSE_TOKEN}" }
+  # Phoenix ingests OTLP/gRPC.
+  otlp/phoenix:
+    endpoint: phoenix:4317
+    tls: { insecure: true }
+  # Always-on debug exporter so the collector can be verified standalone.
+  debug: { verbosity: normal }
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [resource, batch]
+      # Langfuse/Phoenix exporters are best-effort (only resolve when those services are up); debug always works.
+      exporters: [otlphttp/langfuse, otlp/phoenix, debug]
+  telemetry:
+    # info so the `debug` exporter prints received spans (observability-smoke can grep for them).
+    logs: { level: info }

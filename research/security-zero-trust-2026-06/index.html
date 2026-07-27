@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCP Security &amp; Zero-Trust Posture — Honest Assessment (2026-06-15)</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--border:#30363d;--text:#e6edf3;
+        --muted:#9da7b3;--accent:#58a6ff;--green:#3fb950;--amber:#d29922;--red:#f85149;--purple:#bc8cff}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.65}
+  .wrap{max-width:1060px;margin:0 auto;padding:32px 24px 80px}
+  header{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:28px}
+  h1{font-size:1.7rem;margin:0 0 8px} h2{font-size:1.3rem;margin:38px 0 12px;padding-top:18px;border-top:1px solid var(--border);color:var(--accent)}
+  .sub{color:var(--muted);font-size:.95rem}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.88rem}
+  th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--accent)} tr:nth-child(even) td{background:var(--panel)}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin:14px 0}
+  .good{border-left:4px solid var(--green)} .warn{border-left:4px solid var(--amber)} .bad{border-left:4px solid var(--red)}
+  code{background:var(--panel2);padding:1px 6px;border-radius:4px;font-size:.85em}
+  .tag{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.72rem;font-weight:600;margin-right:4px}
+  .have{background:#1f3d2b;color:var(--green)} .gap{background:#3d2a1f;color:var(--amber)} .na{background:#2a2f3d;color:var(--muted)}
+  ul{padding-left:22px} li{margin:5px 0} a{color:var(--accent)} .big{font-size:1.1rem;font-weight:700}
+  .footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>MCP Security &amp; Zero-Trust Posture — an Honest Assessment</h1>
+  <div class="sub">2026-06-15 · research §20 · KB_16 · operator-requested. No reassurance theatre: what's secured by
+  construction, what is NOT yet built, and the staged plan. Frameworks: CSA Agentic Trust Framework · NIST SP 800-207
+  · OWASP Top-10 for Agentic Apps · IBM Agentic Trust blueprint.</div>
+</header>
+
+<h2>1. Is the MCP architecture we shipped secure?</h2>
+<div class="card good">
+<p><span class="big">Short answer: secure <em>for what it currently is</em> (a local, in-process tool surface) — and
+deliberately NOT yet hardened for the network/multi-party case, because that case doesn't exist until Stage 14.</span></p>
+<p>The documented MCP threats in 2026 are <strong>tool poisoning</strong> (malicious instructions hidden in tool
+descriptions), schema poisoning, prompt injection via tool I/O, and <strong>credential-aggregation token theft</strong>
+(one rogue server leaking OAuth tokens). <strong>By construction, none of these are reachable today:</strong></p>
+<table>
+<tr><th>MCP threat</th><th>Reachable here?</th><th>Why</th></tr>
+<tr><td>Tool poisoning from a rogue/remote server</td><td>No</td><td>servers are OUR code, spawned as local stdio subprocesses — no registry discovery, no third-party server</td></tr>
+<tr><td>OAuth-token aggregation theft</td><td>No</td><td>no OAuth tokens aggregated; no network listener</td></tr>
+<tr><td>Network MITM</td><td>No</td><td>stdio over the local process tree, not a socket</td></tr>
+<tr><td>Prompt injection via tool descriptions read by an LLM</td><td>No</td><td>the self-healing loop is LLM-free; tools are wired by us, not read by a model from untrusted metadata</td></tr>
+</table>
+</div>
+
+<h2>2. What we already have vs. the honest gaps</h2>
+<div class="card warn">
+<table>
+<tr><th>Control (2026 canon)</th><th>Status</th><th>Evidence / gap</th></tr>
+<tr><td>Typed tool I/O schemas</td><td><span class="tag have">HAVE</span></td><td>conformance-tested (22 MCP tests)</td></tr>
+<tr><td>No fabricated results (honest-unavailable)</td><td><span class="tag have">HAVE</span></td><td>every tool returns <code>available:false</code> on failure</td></tr>
+<tr><td>Memory tenant isolation</td><td><span class="tag have">HAVE</span></td><td><code>CrossNamespaceAccessError</code> before any I/O</td></tr>
+<tr><td>Tamper-evident audit (assume-breach)</td><td><span class="tag have">HAVE</span></td><td>append-only SHA-256 hash-chained <code>audit_chain</code> + DB triggers</td></tr>
+<tr><td>Per-tool capability authorization</td><td><span class="tag gap">GAP G-063</span></td><td>tools are not capability-scoped per caller</td></tr>
+<tr><td>Input sanitisation / prompt-injection filtering on tool args</td><td><span class="tag gap">GAP G-063</span></td><td>no arg-level filtering yet</td></tr>
+<tr><td>Signed tool manifest (supply-chain integrity)</td><td><span class="tag gap">GAP G-063</span></td><td>our own tool defs aren't signed/attested</td></tr>
+<tr><td>mTLS + OAuth 2.1 + gateway (network MCP)</td><td><span class="tag na">N/A till Stage 14</span></td><td>only needed once HTTP/third-party servers are exposed; A2A boundary (KB_16) covers it</td></tr>
+</table>
+</div>
+
+<h2>3. Are we employing Zero-Trust for the agentic system?</h2>
+<div class="card good">
+<p><span class="big">Partially — by design — and we can (and will) make it a coherent, named architecture.</span>
+The four ZT principles, mapped honestly to what is SHIPPED:</p>
+<table>
+<tr><th>ZT principle</th><th>What we ship</th><th>The gap</th></tr>
+<tr><td>Verify explicitly</td><td>HITL <code>interrupt()</code> on SIL-1+; neuro-symbolic plan verifier gates execution against a binding PlantState</td><td>no per-call agent <em>identity</em> auth yet</td></tr>
+<tr><td>Least privilege</td><td>Mem0 namespace isolation; no-LLM-direct-actuator (all via <code>safety/validator</code>); A2A exposes a deliberate capability subset</td><td>MCP tools not capability-scoped; DB role not least-privilege-split</td></tr>
+<tr><td>Assume breach</td><td>append-only hash-chained audit; immutability triggers; PQC migration (13.5/18)</td><td>no per-agent ZTNA network segmentation</td></tr>
+<tr><td>Continuously validate</td><td>every decision audited + traced; <code>verify_range</code> integrity</td><td>no continuous behavioural anomaly detection on agents</td></tr>
+</table>
+<p><strong>Why not fully zero-trust yet?</strong> A coherent ZT layer needs the PQC <em>identity</em> primitives
+(Stage 13.5), the A2A identity/mTLS boundary (Stage 14), the functional-safety wrapper (Stage 17), and the red-team
+eval harness (Stage 20) — all already on the roadmap. Bolting a half ZT layer on before those exist would be
+theatre, which our rules forbid. <strong>Can we? Yes</strong> — gap <strong>G-064</strong>: adopt the CSA Agentic
+Trust Framework + NIST 800-207 as the named target, give every agent/tool a non-human <strong>ML-DSA-65 identity</strong>
+(already specced in KB_16), scope MCP tools to capabilities, and add OWASP-Agentic evals.</p>
+</div>
+
+<h2>4. The staged hardening plan (no theatre — routed to the security stages)</h2>
+<div class="card">
+<table>
+<tr><th>Stage</th><th>Zero-trust / MCP-security increment</th></tr>
+<tr><td>13.5 PQC foundations</td><td>ML-DSA-65 signing — replaces the audit-chain placeholder; the identity primitive for agent cards</td></tr>
+<tr><td>14 A2A boundary</td><td>mTLS + ML-DSA-65 agent-card trust + revocation; agent <strong>non-human identity</strong> issued; per-tool capability scoping (G-063/G-064)</td></tr>
+<tr><td>17 Functional safety</td><td>safety-gate coverage 100%; every actuator span preceded by <code>safety.validate</code></td></tr>
+<tr><td>20 Red-team evals</td><td>prompt-injection/OWASP-LLM01 + OWASP-Agentic + NIST-RMF block-rate ≥99%; continuous validation harness</td></tr>
+<tr><td>21 DR/HA</td><td>least-privilege DB roles; network segmentation / ZTNA</td></tr>
+</table>
+<p>New gaps ledgered: <strong>G-063</strong> (MCP server hardening), <strong>G-064</strong> (named ZT framework +
+agent identity + capability scoping), <strong>G-065</strong> (SBOM + blocking <code>pip-audit</code> + scheduled
+dependency refresh), <strong>G-066</strong> (horizontal-scale hardening). <strong>G-008</strong> reaffirmed
+(Galileo-depth runtime evals).</p>
+</div>
+
+<div class="footer">
+Generated 2026-06-15 (agentic-governance + security-pqc personas). Honesty: this assessment states what is secured
+by construction, what is NOT yet built, and why the rest is staged — no security is claimed that hasn't been built
+(Rule 1a). No backend code changed in this review; the hardening is routed to Stages 13.5/14/17/20/21. Sources:
+research §20 (CSA Agentic Trust Framework, NIST SP 800-207, OWASP Top-10 Agentic, IBM Agentic Trust blueprint, MCP
+threat-model arxiv 2603.22489/2601.17549). KB_16 / KB_23 / risk-register.
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,49 @@
+# Stage 27 — local SPIFFE/SPIRE overlay (research §38.1; the Kagenti identity pattern, free/local).
+#
+# SPIRE Server (signing authority + registry) + SPIRE Agent (Workload API on a shared unix-socket volume).
+# Node attestation: join_token (the compose-native choice — no cloud/K8s attestor available locally).
+# Workload attestation: unix uid selectors. Trust domain: ai-agent.local.
+#
+# Bring-up (scripts/spire/bootstrap-spire.sh automates this):
+#   docker compose -f docker/docker-compose.spire.yml up -d spire-server
+#   TOKEN=$(docker exec spire-server /opt/spire/bin/spire-server token generate -spiffeID spiffe://ai-agent.local/agent-node | awk '{print $2}')
+#   SPIRE_JOIN_TOKEN=$TOKEN docker compose -f docker/docker-compose.spire.yml up -d spire-agent
+#   # register workloads (A2A server + client identities):
+#   docker exec spire-server /opt/spire/bin/spire-server entry create \
+#     -parentID spiffe://ai-agent.local/agent-node -spiffeID spiffe://ai-agent.local/a2a-server -selector unix:uid:0
+#
+# The workload-api socket is exported on the named volume `spire-workload-socket`; host workloads (our tests) reach
+# it via `docker cp`-free bind through the agent container — for host-side tests we run the fetch INSIDE the agent
+# container (`spire-agent api fetch x509`) or bind the socket dir to ./docker/spire/socket (compose below).
+#
+# ISTIO NOTE (honest scope): Istio Ambient requires Kubernetes — the LOCAL load-bearing path is direct SVID-mTLS at
+# the A2A boundary (backend/security/spiffe_identity.py); the mesh is the pilot-scale deployment variant.
+
+services:
+  spire-server:
+    image: ghcr.io/spiffe/spire-server:1.9.6
+    container_name: spire-server
+    command: ["-config", "/opt/spire/conf/server/server.conf"]
+    volumes:
+      - ./spire/server.conf:/opt/spire/conf/server/server.conf:ro
+      - spire-server-data:/opt/spire/data
+    networks: [ai-agent-network]
+
+  spire-agent:
+    image: ghcr.io/spiffe/spire-agent:1.9.6
+    container_name: spire-agent
+    depends_on: [spire-server]
+    command: ["-config", "/opt/spire/conf/agent/agent.conf", "-joinToken", "${SPIRE_JOIN_TOKEN:-bootstrap-required}"]
+    pid: "host"
+    volumes:
+      - ./spire/agent.conf:/opt/spire/conf/agent/agent.conf:ro
+      - ./spire/socket:/tmp/spire/agent/public
+    networks: [ai-agent-network]
+
+volumes:
+  spire-server-data:
+
+networks:
+  ai-agent-network:
+    external: true
+    name: docker_ai-agent-network

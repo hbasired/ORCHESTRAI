@@ -1,0 +1,40 @@
+# Stage 7 — PPO intervention policy training config (reproducible).
+# Free-cost: torch CPU + numpy + the simulator. No paid services, no SB3/gymnasium.
+
+env:
+  sim_hours: 2.0
+  n_cracks: 5
+  crew_capacity: 1
+  crack_eta_minutes: 12.0
+  # Risk signal for training: ground-truth crack_proximity (fast, deterministic,
+  # brain-independent so training runs without xgboost). At INFERENCE the same
+  # observation slot is fed the failure-predictor's p_fail — a documented
+  # train/inference signal substitution, mitigated by the safety shield.
+  use_predictor: false
+  # Reward weights (outcome + objective-aligned dense shaping).
+  throughput_reward_per_unit: 0.02
+  breakdown_penalty: 50.0
+  maintenance_step_cost: 0.10
+  invalid_action_cost: 0.05
+  risk_exposure_cost: 2.0
+
+ppo:
+  hidden: 64
+  lr: 0.0005
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_eps: 0.2
+  value_coef: 0.5
+  entropy_coef: 0.003
+  epochs_per_update: 4
+  minibatch_size: 128
+  max_grad_norm: 0.5
+  seed: 7
+
+train:
+  total_timesteps: 24000
+  rollout_steps: 2000
+  base_seed: 70000
+
+# Held-out seeds for the train-time sanity eval (eval.py uses its own paired set).
+eval_seeds: [7, 8, 9, 10, 11, 12]

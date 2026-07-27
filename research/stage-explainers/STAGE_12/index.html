@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stage 12 — Agent Memory (CLOSED)</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--border:#30363d;--text:#e6edf3;
+        --muted:#9da7b3;--accent:#58a6ff;--green:#3fb950;--amber:#d29922;--purple:#bc8cff}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.65}
+  .wrap{max-width:1040px;margin:0 auto;padding:32px 24px 80px}
+  header{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:28px}
+  h1{font-size:1.7rem;margin:0 0 8px} h2{font-size:1.3rem;margin:40px 0 14px;padding-top:18px;border-top:1px solid var(--border);color:var(--accent)}
+  .sub{color:var(--muted);font-size:.95rem}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.9rem}
+  th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--accent)} tr:nth-child(even) td{background:var(--panel)}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin:14px 0}
+  .verdict{border-left:4px solid var(--accent)} .good{border-left:4px solid var(--green)} .warn{border-left:4px solid var(--amber)}
+  code{background:var(--panel2);padding:1px 6px;border-radius:4px;font-size:.85em}
+  .tag{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.75rem;font-weight:600;margin-right:6px}
+  .tag.built{background:#1f3d2b;color:var(--green)} .tag.measured{background:#1f2d3d;color:var(--accent)} .tag.todo{background:#2a2a3d;color:var(--purple)}
+  ul{padding-left:22px} li{margin:5px 0} a{color:var(--accent)} .big{font-size:1.15rem;font-weight:700;color:var(--green)}
+  .flow{font-family:ui-monospace,monospace;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:.82rem;overflow-x:auto}
+  .footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Stage 12 — Agent Memory <span class="tag built">CLOSED</span></h1>
+  <div class="sub">Tamper-evident decision ledger + real episodic/semantic memory · ADR
+  <code>2026-06-15_stage12_agent_memory.md</code> · KB_14 · research §19. Verified live against the real Docker
+  stack (pgvector Postgres + Neo4j).</div>
+</header>
+
+<h2>1. Why &amp; what</h2>
+<div class="card verdict">
+<p>The runtime needed a memory beyond a single run: a <strong>regulator-grade, tamper-evident record</strong> of every
+decision (EU AI Act Art. 12) and a <strong>real episodic/semantic memory</strong> so it can recall "what happened on
+this incident before." Stage 12 builds four of KB_14's five layers (working was Stage 11; procedural/DVC is future).</p>
+<div class="flow">observe ─(recall Mem0)→ … → decide → verify → log ─(append audit_chain + remember in Mem0)→ done</div>
+</div>
+
+<h2>2. The four layers built</h2>
+<div class="card good">
+<table>
+<tr><th>layer</th><th>backend</th><th>what's real</th></tr>
+<tr><td>Audit</td><td>Postgres <code>audit_chain</code></td><td>append-only, <code>hash=SHA-256(prev_hash‖payload)</code>; BEFORE UPDATE/DELETE triggers RAISE; <code>verify_range()</code>. Placeholder sig → real ML-DSA-65 at 13.5</td></tr>
+<tr><td>Episodic / semantic</td><td>Postgres + <strong>pgvector (HNSW)</strong></td><td>direct pgvector store on KB_14's schema; real sentence-transformers embeddings; namespace-isolated; retention sweep</td></tr>
+<tr><td>Semantic graph</td><td><strong>Neo4j ISA-95</strong></td><td>idempotent migrator (16 constraints) + hierarchy queries + PG mirror <code>isa95_metadata</code></td></tr>
+<tr><td>Episodic (opt-in)</td><td>Letta</td><td>feature-flagged OFF; honest <code>status()</code> — default stays Mem0</td></tr>
+</table>
+</div>
+
+<h2>3. Two design calls (research-grounded, honest)</h2>
+<div class="card good">
+<ul>
+<li><strong>HNSW, not ivfflat</strong> (research §19.2): the store is insert-as-you-go (a memory per incident), and
+HNSW handles incremental inserts + needs no training step + has higher recall, whereas ivfflat must train its lists
+and degrades under inserts.</li>
+<li><strong>Direct pgvector, not the <code>mem0ai</code> library</strong> (research §19.1): <code>mem0ai</code> needs
+an LLM for fact-extraction + imposes its own schema, conflicting with KB_14's <code>mem0_memories</code> contract +
+the offline/free constraint. We implement the contract directly with real embeddings.</li>
+<li><strong>Namespace isolation</strong> (NIST RMF): the adapter binds to an incident (+operator) context; a foreign
+tenant namespace raises <code>CrossNamespaceAccessError</code> <em>before any I/O</em>. Honest-unavailable everywhere
+(<code>AuditChainUnavailable</code>, <code>EmbedderUnavailable</code>, <code>Neo4jUnavailable</code>) — never a fake
+embedding or dropped audit row.</li>
+</ul>
+</div>
+
+<h2>4. Verified live <span class="tag measured">Docker pgvector/pgvector:pg15@5544 + Neo4j@7687</span></h2>
+<div class="card good">
+<table>
+<tr><th>check</th><th>result</th></tr>
+<tr><td>Migrations</td><td>head <code>0005_mem0</code>; <code>vector</code> ext + immutability triggers present; data intact (manufacturing DB + decisions + checkpoints preserved across the image swap)</td></tr>
+<tr><td>Mem0 semantic search</td><td>top hit "Stage 3 machining overstrain" for query about the machining stage, <strong>score 0.744</strong>; cross-namespace REJECTED</td></tr>
+<tr><td>ISA-95</td><td>idempotent migrate (16 constraints, 2nd run clean) + hierarchy (site→area) + PG mirror</td></tr>
+<tr><td>audit_chain</td><td>append + <code>verify_range</code> OK; UPDATE/DELETE blocked by triggers</td></tr>
+<tr><td><strong>Runtime memory loop</strong></td><td>run-1 wrote <strong>audit_seq + a memory</strong>; <strong>run-2 recalled run-1's memory</strong> (memory_recall=1)</td></tr>
+<tr><td>Tests / suite / audit</td><td>memory tests <strong>13 passed</strong>; full backend suite <strong>221 passed / 2 skipped</strong>; audit holds <strong>364</strong></td></tr>
+</table>
+</div>
+
+<h2>5. Honest residual (ledgered)</h2>
+<div class="card warn">
+<ul>
+<li><span class="tag todo">Stage 13.5</span> real ML-DSA-65 audit-chain signing replaces the placeholder (structured for a drop-in).</li>
+<li><span class="tag todo">G-059</span> the graph now consumes the <em>memory</em> layer, but routing the runtime's <em>model/tool</em> calls through the mounted MCP tools is still open (re-targeted Stage 14). <em>(An early ADR draft over-claimed this as "paid"; corrected before close — Rule 1a.)</em></li>
+<li><span class="tag todo">G-060</span> <code>pgaudit</code> (DB-level log) deferred — the image lacks it; the app-level chain + triggers are the Art-12 evidence now.</li>
+<li><span class="tag todo">G-061</span> DVC procedural-memory layer not built this stage.</li>
+</ul>
+<p>Verify: <code>cd backend &amp;&amp; pytest tests/memory/ -q</code> (with <code>DATABASE_URL</code>/<code>NEO4J_PASSWORD</code>/<code>MEM0_EMBED_DIM</code>) · <code>python scripts/verify-audit-chain.py</code> · <code>bash scripts/audit.sh</code> (364).</p>
+</div>
+
+<div class="footer">
+Generated 2026-06-15 (backend-engineer + compliance-engineer). Honesty: every layer wraps a real backend with
+honest-unavailable (no fake embeddings/audit rows); HNSW + direct-pgvector are research-grounded; namespace isolation
+is enforced before I/O; the runtime memory loop was verified live (run-2 recalls run-1); a G-059 over-claim was
+caught + corrected before close. ADR <code>2026-06-15_stage12_agent_memory.md</code>; KB_14/04/01; research §19.
+</div>
+</div>
+</body>
+</html>

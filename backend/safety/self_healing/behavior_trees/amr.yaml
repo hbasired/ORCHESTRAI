@@ -1,0 +1,22 @@
+# Stage 17 — AMR self-repair behaviour tree (KB_17 §"Self-Healing" — self_diagnose_calibrate).
+# Selector: attempt diagnose→calibrate→resume; if that sequence fails (calibration did not restore baseline),
+# the selector returns FAILURE and the caller (self_repair.py) triggers STO + quarantine.
+name: amr_self_heal
+robot_class: amr
+root:
+  type: selector
+  name: self_diagnose_or_stop
+  children:
+    - type: sequence
+      name: self_diagnose_calibrate
+      children:
+        - type: condition
+          ref: torque_anomaly_detected      # the trigger
+        - type: action
+          ref: dock_to_maintenance          # VDA 5050 instantAction dock_to_maintenance
+        - type: action
+          ref: run_calibration              # built-in calibration routine
+        - type: condition
+          ref: calibration_restored_baseline
+        - type: action
+          ref: resume_operation             # routes through safety.validator before resuming

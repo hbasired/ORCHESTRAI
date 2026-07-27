@@ -1,0 +1,17 @@
+# Stage 9 — defect classifier training config (reproducible).
+# Free-cost: torch CPU + torchvision + the public NEU-CLS dataset (newguyme/neu_cls). No paid services.
+
+data:
+  test_frac: 0.2
+  seed: 9
+
+model:
+  conv1: 16
+  conv2: 32
+  dropout: 0.25
+
+train:
+  epochs: 18
+  batch_size: 64
+  lr: 0.002
+  seed: 9

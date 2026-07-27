@@ -1,0 +1,16 @@
+{
+  "spans": [
+    {
+      "name": "safety.validate",
+      "start_time": 1784525897064827500
+    },
+    {
+      "name": "audit_chain.append",
+      "start_time": 1784525897064827500
+    },
+    {
+      "name": "actuator.conveyor",
+      "start_time": 1784525897064827500
+    }
+  ]
+}

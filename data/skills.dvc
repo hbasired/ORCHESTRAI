@@ -1,0 +1,6 @@
+outs:
+- md5: 653957c4549d8812e2600d0e4b8443eb.dir
+  size: 1690
+  nfiles: 1
+  hash: md5
+  path: skills

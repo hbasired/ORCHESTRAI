@@ -1,0 +1,34 @@
+# Stage 17 — manipulator (robot arm) self-repair behaviour tree (KB_17 §"Self-Healing").
+# Like the AMR tree but the arm first moves to a safe home pose, and allows ONE recalibration retry before giving up.
+name: manipulator_self_heal
+robot_class: manipulator
+root:
+  type: selector
+  name: self_diagnose_or_stop
+  children:
+    - type: sequence
+      name: self_diagnose_calibrate
+      children:
+        - type: condition
+          ref: torque_anomaly_detected
+        - type: action
+          ref: move_to_safe_home            # park the arm safely before calibrating
+        - type: selector
+          name: calibrate_with_one_retry
+          children:
+            - type: sequence
+              name: calibrate_attempt
+              children:
+                - type: action
+                  ref: run_calibration
+                - type: condition
+                  ref: calibration_restored_baseline
+            - type: sequence
+              name: calibrate_retry
+              children:
+                - type: action
+                  ref: run_calibration
+                - type: condition
+                  ref: calibration_restored_baseline
+        - type: action
+          ref: resume_operation             # routes through safety.validator before resuming

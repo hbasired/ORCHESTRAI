@@ -1,0 +1,19 @@
+{
+  "tool_selection_quality": 1.0,
+  "action_completion": 1.0,
+  "reasoning_coherence": 1.0,
+  "trajectory": [
+    "observe",
+    "orient",
+    "diagnose",
+    "explain",
+    "decide",
+    "verify",
+    "execute",
+    "log"
+  ],
+  "n_decisions": 1,
+  "interrupted": false,
+  "available": true,
+  "backend": "memory"
+}

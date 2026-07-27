@@ -1,0 +1,26 @@
+# Stage 8 — TTF world-model training config (reproducible).
+# Free-cost: torch CPU + numpy + SimWorld rollouts. No external dataset, no paid services.
+
+rollout:
+  window_len: 6
+  sample_period_s: 30.0
+  eta_min_minutes: 8.0      # randomised crack ETA → TTF varies → honest regression-to-expected-TTF task
+  eta_max_minutes: 20.0
+  warmup_s: 60.0
+
+data:
+  train_seeds_start: 100    # 40 train seeds × 4 stages
+  train_seeds_count: 40
+  val_seeds_start: 200      # 12 disjoint val seeds
+  val_seeds_count: 12
+
+model:
+  hidden: 48
+  num_layers: 1
+  dropout: 0.1
+
+train:
+  epochs: 60
+  batch_size: 64
+  lr: 0.003
+  seed: 8

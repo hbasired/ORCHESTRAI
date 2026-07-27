@@ -1,0 +1,56 @@
+# Gitleaks config — Stage 1 baseline.
+#
+# Goal: block real secrets while tolerating the placeholder / template
+# strings that already exist in the repo (docs, .env.example, schemas).
+# Tighten as we go — every false-positive added here is a path back into
+# the codebase for a real secret if we are not careful.
+
+title = "AI Embodied Agent — gitleaks config"
+
+[extend]
+# Inherit the upstream default ruleset.
+useDefault = true
+
+[allowlist]
+description = "Repo-wide false-positive allowlist"
+
+# Documentation and config templates intentionally show placeholder
+# patterns ("REPLACE_ME", "your_key", etc.).
+paths = [
+    '''^\.env\.example$''',
+    '''^README\.md$''',
+    '''^PROJECT_STATUS\.md$''',
+    '''^QUICK_START\.md$''',
+    '''^DEPLOYMENT_LOG\.md$''',
+    '''^DOCUMENTATION_INDEX\.md$''',
+    '''^Antigravity-Prompt\.md$''',
+    '''^Executive-Summary\.md$''',
+    '''^PRD-ai-embodied-agent\.md$''',
+    '''^docs/.*''',
+    '''^knowledge-base/.*\.md$''',
+    '''^research/.*\.md$''',
+    '''^compliance/.*\.md$''',
+    '''^tasks/.*\.md$''',
+    '''^report.*\.md$''',
+    '''^Report.*\.docx$''',
+    '''^Final-Report\.docx$''',
+    '''^Final-Report\.pdf$''',
+    '''^yor-are-an-agentic-optimized-cookie\.md$''',
+    '''^walkthrough\.md$''',
+    '''^prompt\.md$''',
+    '''^task\.md$''',
+    '''^backend/firebase-credentials\.json$''',  # demo creds, to be rotated in Stage 14
+    '''^database/schema\.sql$''',
+    '''^backend/alembic/.*''',
+    '''^docker/docker-compose\.yml$''',
+]
+
+# Strings that look secret-ish but are clearly placeholders.
+regexes = [
+    '''REPLACE_ME''',
+    '''your[-_]?api[-_]?key''',
+    '''your[-_]?key''',
+    '''example[-_]?token''',
+    '''placeholder''',
+    '''aiagent2026''',  # transitional — removed from compose in Stage 1
+]

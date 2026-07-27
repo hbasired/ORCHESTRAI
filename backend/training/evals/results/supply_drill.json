@@ -1,0 +1,400 @@
+{
+  "design": "seed 42, warm 60 + post 100 ticks x 300.0s, 10.0x-median delay on the award-winning supplier for the whole post window; control arm = same seed, no injection (independent-review methodology)",
+  "control": {
+    "arm": "control",
+    "target_supplier": 4,
+    "injected_median_s": null,
+    "events": [],
+    "latency_events": []
+  },
+  "injection": {
+    "arm": "injection",
+    "target_supplier": 4,
+    "injected_median_s": 2669.2499845089988,
+    "events": [
+      {
+        "tick": 95,
+        "event": "stockout@stage:8"
+      },
+      {
+        "tick": 109,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 110,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 111,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 112,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 113,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 114,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 115,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 116,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 117,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 118,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 119,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 120,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 120,
+        "event": "stockout@stage:8"
+      },
+      {
+        "tick": 121,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 121,
+        "event": "stockout@stage:9"
+      },
+      {
+        "tick": 122,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 123,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 124,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 125,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 126,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 127,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 127,
+        "event": "stockout@stage:8"
+      },
+      {
+        "tick": 128,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 129,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 129,
+        "event": "stockout@stage:7"
+      },
+      {
+        "tick": 130,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 131,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 132,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 133,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 134,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 135,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 136,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 137,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 138,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 138,
+        "event": "stockout@stage:7"
+      },
+      {
+        "tick": 139,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 140,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 141,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 142,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 143,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 144,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 145,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 145,
+        "event": "stockout@stage:7"
+      },
+      {
+        "tick": 146,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 147,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 148,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 149,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 150,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 150,
+        "event": "stockout@stage:0"
+      },
+      {
+        "tick": 151,
+        "event": "latency_spike@supplier:4"
+      }
+    ],
+    "latency_events": [
+      {
+        "tick": 109,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 110,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 111,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 112,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 113,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 114,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 115,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 116,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 117,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 118,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 119,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 120,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 121,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 122,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 123,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 124,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 125,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 126,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 127,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 128,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 129,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 130,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 131,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 132,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 133,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 134,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 135,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 136,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 137,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 138,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 139,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 140,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 141,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 142,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 143,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 144,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 145,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 146,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 147,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 148,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 149,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 150,
+        "event": "latency_spike@supplier:4"
+      },
+      {
+        "tick": 151,
+        "event": "latency_spike@supplier:4"
+      }
+    ]
+  },
+  "checks": {
+    "injected_supplier_detected": true,
+    "control_has_no_latency_events": true
+  },
+  "verdict": "PASS"
+}

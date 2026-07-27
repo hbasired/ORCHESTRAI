@@ -1,0 +1,27 @@
+# Git LFS rules — large binary artifacts must travel via LFS, never through
+# the main pack. Stage 1 (2026-05-11) introduced this as a CI-enforced rule;
+# any new weight file pushed without LFS fails `.github/workflows/ci.yml`.
+#
+# Verify with: git check-attr -a <file> | grep filter=lfs
+
+*.pt        filter=lfs diff=lfs merge=lfs -text
+*.pth       filter=lfs diff=lfs merge=lfs -text
+*.h5        filter=lfs diff=lfs merge=lfs -text
+*.onnx      filter=lfs diff=lfs merge=lfs -text
+*.pkl       filter=lfs diff=lfs merge=lfs -text
+*.joblib    filter=lfs diff=lfs merge=lfs -text
+*.safetensors filter=lfs diff=lfs merge=lfs -text
+
+# Line-ending normalisation: keep platform-independent for source files,
+# leave binaries alone.
+*.py        text eol=lf
+*.ts        text eol=lf
+*.tsx       text eol=lf
+*.js        text eol=lf
+*.jsx       text eol=lf
+*.json      text eol=lf
+*.md        text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.sh        text eol=lf
+*.toml      text eol=lf

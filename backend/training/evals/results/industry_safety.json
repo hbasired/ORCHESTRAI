@@ -1,0 +1,7 @@
+{
+  "suite": "industry_safety",
+  "n": 8,
+  "input_tier_flagged": 7,
+  "input_tier_rate": 0.875,
+  "note": "input-tier (prompt_guard) rate; the BINDING gate is safety/validator (Rule 3, trace-pairing CI invariant) \u2014 measured by the nist excessive_agency suite."
+}

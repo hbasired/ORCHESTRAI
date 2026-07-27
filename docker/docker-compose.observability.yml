@@ -1,0 +1,138 @@
+# Stage 12.5 — observability overlay (KB_15). Self-hosted, Apache-2.0, no paid SaaS, EU-residency friendly.
+#
+#   docker compose -f docker/docker-compose.yml -f docker/docker-compose.observability.yml up -d
+#
+# Two-store split: traces → Langfuse (mutable, 90-day) + Phoenix (evals); evidence → Postgres `audit_chain`
+# (immutable + signed, in the base compose). The backend emits OTLP to the otel-collector (set
+# OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318 in the backend env), which fans out to Langfuse + Phoenix.
+#
+# NOTE: the full Langfuse v3 stack (web + its own pg + clickhouse + redis) is heavy; the otel-collector alone (with
+# its `debug` exporter) is enough to smoke-test that the app's OTLP spans arrive. Bring up the subset you need.
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.110.0
+    container_name: ai-agent-otel-collector
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol/config.yaml:ro
+    environment:
+      - LANGFUSE_TOKEN=${LANGFUSE_TOKEN:-}
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+    networks: [ai-agent-network]
+
+  phoenix:
+    image: arizephoenix/phoenix:latest
+    container_name: ai-agent-phoenix
+    ports:
+      - "6006:6006"   # Phoenix UI
+      - "9097:4317"   # Phoenix OTLP gRPC (host 9097 → avoid clashing with the collector's 4317)
+    networks: [ai-agent-network]
+
+  langfuse-pg:
+    image: postgres:15-alpine
+    container_name: ai-agent-langfuse-pg
+    environment:
+      - POSTGRES_USER=langfuse
+      - POSTGRES_PASSWORD=${LANGFUSE_PG_PASSWORD:-langfuse_dev}
+      - POSTGRES_DB=langfuse
+    volumes:
+      - langfuse-pg-data:/var/lib/postgresql/data
+    networks: [ai-agent-network]
+
+  langfuse-clickhouse:
+    image: clickhouse/clickhouse-server:24.3
+    container_name: ai-agent-langfuse-clickhouse
+    environment:
+      - CLICKHOUSE_USER=clickhouse
+      - CLICKHOUSE_PASSWORD=${LANGFUSE_CLICKHOUSE_PASSWORD:-clickhouse_dev}
+    volumes:
+      - langfuse-clickhouse-data:/var/lib/clickhouse
+    networks: [ai-agent-network]
+
+  langfuse-redis:
+    image: redis:7-alpine
+    container_name: ai-agent-langfuse-redis
+    networks: [ai-agent-network]
+
+  # Stage 25 (G-067): Langfuse v3 REQUIRES S3-compatible blob storage for event uploads (ZodError on
+  # LANGFUSE_S3_EVENT_UPLOAD_BUCKET without it) — MinIO is the free/local answer, mirroring upstream's own compose.
+  langfuse-minio:
+    image: minio/minio:latest
+    container_name: ai-agent-langfuse-minio
+    entrypoint: sh
+    command: -c 'mkdir -p /data/langfuse && minio server /data --address ":9000"'
+    environment:
+      - MINIO_ROOT_USER=minio
+      - MINIO_ROOT_PASSWORD=${LANGFUSE_MINIO_PASSWORD:-miniosecret_dev}
+    volumes:
+      - langfuse-minio-data:/data
+    networks: [ai-agent-network]
+
+  # v3 splits ingestion into a worker; without it events queue but the UI still renders (worker included for a
+  # working end-to-end path, not just a render check).
+  langfuse-worker:
+    image: langfuse/langfuse-worker:3
+    container_name: ai-agent-langfuse-worker
+    depends_on: [langfuse-pg, langfuse-clickhouse, langfuse-redis, langfuse-minio]
+    environment: &langfuse_shared_env
+      - DATABASE_URL=postgresql://langfuse:${LANGFUSE_PG_PASSWORD:-langfuse_dev}@langfuse-pg:5432/langfuse
+      - CLICKHOUSE_URL=http://langfuse-clickhouse:8123
+      - CLICKHOUSE_MIGRATION_URL=clickhouse://langfuse-clickhouse:9000
+      - CLICKHOUSE_CLUSTER_ENABLED=false
+      - CLICKHOUSE_USER=clickhouse
+      - CLICKHOUSE_PASSWORD=${LANGFUSE_CLICKHOUSE_PASSWORD:-clickhouse_dev}
+      - REDIS_CONNECTION_STRING=redis://langfuse-redis:6379
+      - SALT=${LANGFUSE_SALT:-changeme_dev_salt}
+      - ENCRYPTION_KEY=${LANGFUSE_ENCRYPTION_KEY:-0000000000000000000000000000000000000000000000000000000000000000}
+      - TELEMETRY_ENABLED=false
+      - LANGFUSE_S3_EVENT_UPLOAD_BUCKET=langfuse
+      - LANGFUSE_S3_EVENT_UPLOAD_REGION=auto
+      - LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID=minio
+      - LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY=${LANGFUSE_MINIO_PASSWORD:-miniosecret_dev}
+      - LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT=http://langfuse-minio:9000
+      - LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE=true
+    networks: [ai-agent-network]
+
+  # Stage 25 (G-067 live-render fixes, found on the FIRST live run of this overlay — it had never been started
+  # before, which was exactly the G-067 gap): Langfuse v3 requires CLICKHOUSE_MIGRATION_URL (native protocol),
+  # CLICKHOUSE_CLUSTER_ENABLED=false on single-node, an ENCRYPTION_KEY, and S3 blob storage (MinIO above).
+  langfuse-web:
+    image: langfuse/langfuse:3
+    container_name: ai-agent-langfuse-web
+    depends_on: [langfuse-pg, langfuse-clickhouse, langfuse-redis, langfuse-minio]
+    environment:
+      - DATABASE_URL=postgresql://langfuse:${LANGFUSE_PG_PASSWORD:-langfuse_dev}@langfuse-pg:5432/langfuse
+      - CLICKHOUSE_URL=http://langfuse-clickhouse:8123
+      - CLICKHOUSE_MIGRATION_URL=clickhouse://langfuse-clickhouse:9000
+      - CLICKHOUSE_CLUSTER_ENABLED=false
+      - CLICKHOUSE_USER=clickhouse
+      - CLICKHOUSE_PASSWORD=${LANGFUSE_CLICKHOUSE_PASSWORD:-clickhouse_dev}
+      - REDIS_CONNECTION_STRING=redis://langfuse-redis:6379
+      - NEXTAUTH_URL=http://localhost:3001
+      - NEXTAUTH_SECRET=${LANGFUSE_NEXTAUTH_SECRET:-changeme_dev_secret}
+      - SALT=${LANGFUSE_SALT:-changeme_dev_salt}
+      - ENCRYPTION_KEY=${LANGFUSE_ENCRYPTION_KEY:-0000000000000000000000000000000000000000000000000000000000000000}
+      - TELEMETRY_ENABLED=false
+      - LANGFUSE_S3_EVENT_UPLOAD_BUCKET=langfuse
+      - LANGFUSE_S3_EVENT_UPLOAD_REGION=auto
+      - LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID=minio
+      - LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY=${LANGFUSE_MINIO_PASSWORD:-miniosecret_dev}
+      - LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT=http://langfuse-minio:9000
+      - LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE=true
+    ports:
+      - "3001:3000"   # Langfuse UI
+    networks: [ai-agent-network]
+
+volumes:
+  langfuse-pg-data:
+  langfuse-clickhouse-data:
+  langfuse-minio-data:
+
+# Joins the base compose network (docker_ai-agent-network). The base file defines it; mark external here so the
+# overlay attaches rather than redefining.
+networks:
+  ai-agent-network:
+    external: true
+    name: docker_ai-agent-network

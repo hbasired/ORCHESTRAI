@@ -1,0 +1,26 @@
+# Stage 18 — PQC Wave 2 hybrid-TLS sidecar (KB_13 algorithm matrix; research §28).
+# OpenSSL 3.5 has NATIVE hybrid ML-KEM-768+X25519 (group X25519MLKEM768) + ML-DSA/SLH-DSA — so the sidecar no longer
+# needs a custom oqs-provider build (oqs-provider was only required pre-3.5). An OpenSSL-3.5-based terminator (haproxy
+# 3.x / nginx) fronts EVERY external boundary; the agent sits on plain HTTP on the loopback behind it.
+#
+# Boundaries fronted (KB_13): A2A (:8443), REST /api/* + WebSocket /ws (:8444 -> backend:8000), MQTT-over-TLS (:8883),
+# OPC UA-over-TLS (:4843). Server cert chain = ML-DSA-65 (generate with scripts/gen-pqc-tls-cert.sh).
+# The live X25519MLKEM768 handshake is verified by backend/tests/crypto/test_hybrid_tls.py against this exact config.
+services:
+  pqc-tls-sidecar:
+    image: haproxytech/haproxy-debian:3.1   # built against OpenSSL 3.5 (native X25519MLKEM768); no oqs-provider needed
+    container_name: ai-agent-pqc-tls
+    volumes:
+      - ./pqc-haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./secrets/pqc:/etc/haproxy/certs:ro          # ML-DSA-65 server cert + key (gen-pqc-tls-cert.sh; gitignored)
+    ports:
+      - "8443:8443"   # A2A external boundary           (hybrid mTLS)
+      - "8444:8444"   # REST /api/* + WebSocket /ws      (hybrid TLS -> backend:8000)
+      - "8883:8883"   # MQTT-over-TLS (Sparkplug B)      (hybrid TLS -> mqtt:1883)
+      - "4843:4843"   # OPC UA-over-TLS                  (hybrid TLS -> opcua server)
+    networks: [ai-agent-network]
+
+networks:
+  ai-agent-network:
+    external: true
+    name: docker_ai-agent-network

@@ -1,0 +1,19 @@
+{
+  "headerId": 0,
+  "timestamp": "2026-06-20T12:00:01Z",
+  "version": "2.1.0",
+  "manufacturer": "ACME",
+  "serialNumber": "AGV-1",
+  "orderId": "order-1",
+  "orderUpdateId": 0,
+  "lastNodeId": "n1",
+  "lastNodeSequenceId": 0,
+  "nodeStates": [],
+  "edgeStates": [],
+  "driving": false,
+  "actionStates": [],
+  "batteryState": {"batteryCharge": 87.5, "charging": false},
+  "operatingMode": "AUTOMATIC",
+  "errors": [],
+  "safetyState": {"eStop": "NONE", "fieldViolation": false}
+}

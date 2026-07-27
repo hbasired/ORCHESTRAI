@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Viability Analysis — Industrial Agent Control Plane (2026-06-11)</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --border:#30363d;
+    --text:#e6edf3; --muted:#9da7b3; --accent:#58a6ff; --green:#3fb950;
+    --amber:#d29922; --red:#f85149; --purple:#bc8cff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+  .wrap{max-width:1080px;margin:0 auto;padding:32px 24px 80px}
+  header{border-bottom:1px solid var(--border);padding-bottom:24px;margin-bottom:32px}
+  h1{font-size:1.9rem;margin:0 0 8px}
+  h2{font-size:1.4rem;margin:48px 0 16px;padding-top:24px;border-top:1px solid var(--border);color:var(--accent)}
+  h3{font-size:1.1rem;margin:24px 0 8px;color:var(--text)}
+  .sub{color:var(--muted);font-size:.95rem}
+  .tag{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.75rem;font-weight:600;margin-right:6px;vertical-align:middle}
+  .tag.built{background:#1f3d2b;color:var(--green)} .tag.partial{background:#3d331f;color:var(--amber)}
+  .tag.planned{background:#2a2a3d;color:var(--purple)} .tag.risk{background:#3d1f1f;color:var(--red)}
+  .tag.est{background:#1f2d3d;color:var(--accent)}
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.9rem}
+  th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--accent)}
+  tr:nth-child(even) td{background:var(--panel)}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px 20px;margin:16px 0}
+  .verdict{border-left:4px solid var(--accent)}
+  .warn{border-left:4px solid var(--amber)}
+  .good{border-left:4px solid var(--green)}
+  .bad{border-left:4px solid var(--red)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+  .toc{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 24px;columns:2}
+  @media(max-width:760px){.toc{columns:1}}
+  .toc a{display:block;padding:2px 0;font-size:.92rem}
+  .src{font-size:.8rem;color:var(--muted)}
+  .map{margin:12px 0}
+  .footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem}
+  ul{padding-left:22px} li{margin:4px 0}
+  .swot{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:760px){.swot{grid-template-columns:1fr}}
+  .swot .card{margin:0}
+  .swot h3{margin-top:0}
+  code{background:var(--panel2);padding:1px 6px;border-radius:4px;font-size:.85em}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Market Viability Analysis — Industrial Agent Control Plane</h1>
+  <div class="sub">Strategic Product Reset · 2026-06-11 · Companion to <code>research/initial-research.md §14</code>, PRD v3, KB_26.<br>
+  Refreshes <code>research/market-analysis/index.html</code> (2026-05-31). Every external figure carries a numbered source; qualitative judgments are labeled.
+  Build-status tags reflect the repo at 2026-06-11 (Stages 0–5 closed, baseline 402).</div>
+</header>
+
+<nav class="toc">
+  <a href="#s1">1. Executive verdict</a>
+  <a href="#s2">2. TAM / SAM / SOM</a>
+  <a href="#s3">3. Competitor landscape (refreshed)</a>
+  <a href="#s4">4. Perceptual maps</a>
+  <a href="#s5">5. SWOT (June 2026)</a>
+  <a href="#s6">6. Positioning &amp; white-space</a>
+  <a href="#s7">7. Gap analysis</a>
+  <a href="#s8">8. Problem → solution fit</a>
+  <a href="#s9">9. Adoption &amp; integration path</a>
+  <a href="#s10">10. Startup viability &amp; fundability</a>
+  <a href="#s11">11. What must still be implemented</a>
+  <a href="#s12">12. Sources</a>
+</nav>
+
+<h2 id="s1">1. Executive verdict</h2>
+<div class="card verdict">
+<p><strong>The opportunity is real and has widened since May — but it is conditional on shipping working code.</strong>
+Three things changed between 2026-05-31 and 2026-06-11:</p>
+<ul>
+<li><strong>Orchestration commoditized faster than expected.</strong> InOrbit open-sourced a full fleet manager (OpenRobOps, Feb 2026) [4]; General Robotics GRID and Ati Robotics entered with cross-vendor agentic plays [19][20]. Plain fleet orchestration is no longer a sellable moat for anyone.</li>
+<li><strong>The agent-reliability leader exited.</strong> Cisco completed its acquisition of Galileo (2026-05-22) [7]. The category is validated as acquisition-grade — and the only credible software-only rival to our trust stack is now an incumbent feature with no OT, safety, or PQC story.</li>
+<li><strong>The compliance clock got fixed dates.</strong> The Digital Omnibus provisional agreement (2026-05-07) sets Annex III high-risk obligations at <strong>2 Dec 2027</strong> and Annex I at 2 Aug 2028, replacing the conditional trigger [5][6]. An 18-month "evidence-ready by design" runway, with legal certainty buyers can plan against.</li>
+</ul>
+<p><strong>Net position:</strong> the defensible layer is no longer "orchestrate the robots" — it is
+<strong>trust (signed evidence + functional safety + crypto-agility) × causal self-healing intelligence</strong>, running
+<em>above</em> commodity orchestration (integrating OpenRobOps / Open-RMF rather than competing with them). That corner is
+still unoccupied: no incumbent, fleet player, or new entrant advertises EU-AI-Act-grade evidence, SIL-gated actuation,
+and PQC together [qualitative judgment, grounded in §3].</p>
+<p><strong>The honest caveat stands:</strong> the project is spec-deep, code-thin (CTO Checkpoint #1). The verdict above
+is a verdict on the <em>lane</em>, not on the current build. Viability converts to reality only via the Stage 6 vertical
+slice and a reference pilot (§10, §11).</p>
+</div>
+
+<h2 id="s2">2. TAM / SAM / SOM</h2>
+<p class="sub">Analyst figures vary widely by scope definition; ranges are shown deliberately. SOM is our own estimate with the method stated.</p>
+<table>
+<tr><th>Layer</th><th>Definition</th><th>Size &amp; source</th><th>Notes</th></tr>
+<tr>
+  <td><strong>TAM</strong></td>
+  <td>Warehouse robotics (global)</td>
+  <td>$7.35B (2026) → $25.41B (2034), CAGR 16.8% [1]</td>
+  <td>The hardware+software context our wedge lives in. Adjacent: AMR market $2.75–5.49B in 2026 depending on analyst [2][3].</td>
+</tr>
+<tr>
+  <td><strong>SAM</strong></td>
+  <td>AMR fleet-management <em>software</em> + AI-driven PdM software</td>
+  <td>Fleet-mgmt SW: $198M (2026) → $567M (2034), CAGR 19.5% [4b]. AI-PdM SW: $1.18B (2026), CAGR 15.6% [8]</td>
+  <td>Our two directly monetizable layers (orchestration-adjacent control plane + the self-healing/PdM intelligence). Combined 2026 SAM ≈ $1.3–1.4B <span class="tag est">estimate: sum of the two sourced segments; overlap unquantified</span></td>
+</tr>
+<tr>
+  <td><strong>SOM</strong></td>
+  <td>Multi-vendor EU/regulated warehouse operators reachable in 3 years via OSS + SI channel</td>
+  <td>~$10–25M ARR potential by 2029 <span class="tag est">estimate</span></td>
+  <td>Method: 30–60 mid-size EU warehouse pilots (per §9 economics, support+pilot contracts $150–400k/yr each) — anchored to the InOrbit comparable (Series A on a managed-fleet base of thousands of robots [4a]). NOT a measured number; revisit at every CTO checkpoint.</td>
+</tr>
+</table>
+<div class="card warn"><strong>Demand-side tailwinds (sourced):</strong> 76% of supply-chain operations impacted by labor
+shortage (Descartes) and 41% of warehouse managers unable to attract/retain workers (MHI 2025) [9]; 60% of warehouses plan
+to raise automation budgets ~20% in 2026 [10]; &gt;45% PdM adoption in large manufacturers, 65% of maintenance teams plan AI
+by end-2026 [11].</div>
+
+<h2 id="s3">3. Competitor landscape (refreshed June 2026)</h2>
+<table>
+<tr><th>Band</th><th>Player</th><th>June 2026 status</th><th>Strength</th><th>Their gap (our axis)</th></tr>
+<tr>
+  <td rowspan="2"><strong>A. Incumbent OS plays</strong></td>
+  <td>Siemens + NVIDIA</td>
+  <td>"Industrial AI Operating System"; first fully-AI-driven adaptive factory blueprint (Erlangen, 2026); agentic Copilot portfolio [12][13]</td>
+  <td>Distribution, digital twin, safety heritage, PepsiCo case (~90% issues pre-change) [14]</td>
+  <td>Vendor-locked; no open evidence format; no PQC; single-vendor orchestration</td>
+</tr>
+<tr>
+  <td>Rockwell + AWS / Honeywell et al.</td>
+  <td>Agentic-AI announcements continue; no neutral control plane shipped [research §14 — no Rockwell-specific agentic product found in this sweep]</td>
+  <td>PLC/controls install base</td>
+  <td>Lock-in; DIY compliance; no crypto-agility</td>
+</tr>
+<tr>
+  <td rowspan="3"><strong>B. Fleet orchestration</strong></td>
+  <td>InOrbit / OpenRobOps</td>
+  <td>$10M Series A (Sep 2025); <strong>OpenRobOps OSS fleet manager</strong> (Feb 2026, permissive license later in 2026); Colgate-Palmolive, Genentech [4][4a]</td>
+  <td>Closest on open + standards (VDA 5050, MassRobotics, Open-RMF)</td>
+  <td>No safety wrapper, no signed evidence, no PQC, no causal reasoning — <strong>integration target, not enemy</strong></td>
+</tr>
+<tr>
+  <td>Open-RMF / OSRA</td>
+  <td>Community-driven multi-fleet interop; OpenRobOps fills its fleet-manager gap per Open Robotics CTO [4]</td>
+  <td>Vendor-neutral standard, credibility</td>
+  <td>Not a product; no trust/compliance layer — we integrate it</td>
+</tr>
+<tr>
+  <td>Boston Dynamics Orbit / Agility Arc</td>
+  <td>Orbit orchestrates Atlas incl. MES/WMS integrations (Hyundai RMAC 2026); Arc runs Digit at GXO (&gt;100k totes, &gt;1yr) [15][16]</td>
+  <td>Polished, proven, OEM-grade</td>
+  <td><strong>Single-vendor by design</strong> — mixed fleets still need a neutral layer above</td>
+</tr>
+<tr>
+  <td rowspan="2"><strong>C. Agent governance</strong></td>
+  <td>Galileo → <strong>Cisco</strong></td>
+  <td>Acquisition completed 2026-05-22; pre-exit $68M raised, 834% revenue growth 2024, six Fortune-50 customers [7][17]</td>
+  <td>Eval/guardrail depth, now incumbent distribution</td>
+  <td>Software-only: no OT standards, no actuator safety, no robots, no PQC</td>
+</tr>
+<tr>
+  <td>Arize / LangSmith / Langfuse</td>
+  <td>Observability/eval ingredients; Langfuse self-hosted is in our stack</td>
+  <td>Tooling maturity</td>
+  <td>Ingredients, not an industrial control plane</td>
+</tr>
+<tr>
+  <td rowspan="2"><strong>D. New entrants</strong></td>
+  <td>Ati Robotics</td>
+  <td>"Agentic material orchestration" above ERP/MES; one agent manages all fleets [19]</td>
+  <td>Closest new-entrant analogue to our coordination layer</td>
+  <td>No published evidence/safety/crypto story; validates the lane</td>
+</tr>
+<tr>
+  <td>General Robotics (GRID)</td>
+  <td>Cross-OEM robot intelligence platform: modular AI skills, cloud orchestration, sim training [20]</td>
+  <td>Cross-vendor AI skills</td>
+  <td>No compliance/safety/PQC positioning found</td>
+</tr>
+</table>
+<div class="card good"><strong>Capability matrix (qualitative, author judgment grounded in the rows above):</strong> across
+six axes — vendor-neutral/open-source · EU-AI-Act evidence · functional safety · PQC/crypto-agility · OT standards depth ·
+causal self-healing — no player above scores on more than three. Our spec scores on all six; our <em>build</em> currently
+proves two (vendor-neutral architecture, OT-grade simulation+prediction). Closing that spec/build gap is the entire game (§11).</div>
+
+<h2 id="s4">4. Perceptual maps</h2>
+<p class="sub">Positions are the author's qualitative judgment (not measured data), grounded in §3 sources. Axes chosen to be minimally correlated. Refreshed from the 2026-05-31 set.</p>
+
+<div class="map">
+<svg viewBox="0 0 560 360" width="100%" style="max-width:680px;background:var(--panel);border:1px solid var(--border);border-radius:8px">
+  <text x="280" y="22" fill="#e6edf3" font-size="13" text-anchor="middle" font-weight="bold">Map A — Openness × Trust depth (evidence/safety/crypto)</text>
+  <line x1="60" y1="310" x2="530" y2="310" stroke="#30363d"/><line x1="60" y1="310" x2="60" y2="40" stroke="#30363d"/>
+  <text x="295" y="338" fill="#9da7b3" font-size="11" text-anchor="middle">proprietary → open</text>
+  <text x="20" y="175" fill="#9da7b3" font-size="11" transform="rotate(-90 20 175)" text-anchor="middle">shallow → deep regulated trust</text>
+  <circle cx="120" cy="120" r="7" fill="#d29922"/><text x="132" y="124" fill="#e6edf3" font-size="11">Siemens+NVIDIA</text>
+  <circle cx="105" cy="180" r="7" fill="#d29922"/><text x="117" y="184" fill="#e6edf3" font-size="11">Rockwell</text>
+  <circle cx="185" cy="150" r="7" fill="#bc8cff"/><text x="197" y="154" fill="#e6edf3" font-size="11">Cisco/Galileo</text>
+  <circle cx="350" cy="235" r="7" fill="#58a6ff"/><text x="362" y="239" fill="#e6edf3" font-size="11">InOrbit/OpenRobOps</text>
+  <circle cx="430" cy="265" r="7" fill="#58a6ff"/><text x="442" y="269" fill="#e6edf3" font-size="11">Open-RMF</text>
+  <circle cx="150" cy="250" r="7" fill="#9da7b3"/><text x="162" y="254" fill="#e6edf3" font-size="11">BD Orbit / Arc</text>
+  <circle cx="240" cy="220" r="7" fill="#9da7b3"/><text x="252" y="224" fill="#e6edf3" font-size="11">Ati / GRID</text>
+  <circle cx="455" cy="75" r="9" fill="#3fb950"/><text x="467" y="79" fill="#3fb950" font-size="12" font-weight="bold">US (spec)</text>
+  <circle cx="430" cy="170" r="6" fill="#3fb950" opacity="0.5"/><text x="350" y="160" fill="#3fb950" font-size="10" opacity="0.8">US (built today)</text>
+</svg></div>
+
+<div class="map">
+<svg viewBox="0 0 560 360" width="100%" style="max-width:680px;background:var(--panel);border:1px solid var(--border);border-radius:8px">
+  <text x="280" y="22" fill="#e6edf3" font-size="13" text-anchor="middle" font-weight="bold">Map B — Fleet breadth (multi-vendor) × Decision explainability</text>
+  <line x1="60" y1="310" x2="530" y2="310" stroke="#30363d"/><line x1="60" y1="310" x2="60" y2="40" stroke="#30363d"/>
+  <text x="295" y="338" fill="#9da7b3" font-size="11" text-anchor="middle">single-vendor → multi-vendor + cross-domain</text>
+  <text x="20" y="175" fill="#9da7b3" font-size="11" transform="rotate(-90 20 175)" text-anchor="middle">black-box → causal/counterfactual</text>
+  <circle cx="130" cy="200" r="7" fill="#d29922"/><text x="142" y="204" fill="#e6edf3" font-size="11">Siemens+NVIDIA</text>
+  <circle cx="95" cy="265" r="7" fill="#9da7b3"/><text x="107" y="269" fill="#e6edf3" font-size="11">BD Orbit / Arc / Locus</text>
+  <circle cx="330" cy="245" r="7" fill="#58a6ff"/><text x="342" y="249" fill="#e6edf3" font-size="11">InOrbit / Open-RMF</text>
+  <circle cx="300" cy="190" r="7" fill="#9da7b3"/><text x="312" y="194" fill="#e6edf3" font-size="11">Ati / GRID</text>
+  <circle cx="240" cy="130" r="7" fill="#bc8cff"/><text x="252" y="134" fill="#e6edf3" font-size="11">Cisco/Galileo (evals)</text>
+  <circle cx="460" cy="70" r="9" fill="#3fb950"/><text x="378" y="60" fill="#3fb950" font-size="12" font-weight="bold">US (spec: KB_25)</text>
+  <circle cx="415" cy="200" r="6" fill="#3fb950" opacity="0.5"/><text x="427" y="204" fill="#3fb950" font-size="10" opacity="0.8">US (built: 3-domain + XGBoost/SHAP-less v0)</text>
+</svg></div>
+
+<div class="grid2">
+<div class="card"><strong>Map C — Time-to-evidence × Lock-in cost</strong> (text form): incumbents = slow evidence, high
+lock-in; fleet players = no evidence story, low lock-in; Cisco/Galileo = fast software evidence, growing lock-in;
+<span style="color:var(--green)">us = fast evidence (Annex IV pack ≤60s target) + OSS zero lock-in</span> — the quadrant
+remains empty after the refresh. [qualitative]</div>
+<div class="card"><strong>Map D — Autonomy level × Safety certifiability</strong> (text form): OEM platforms = scripted
+but certifiable; agentic entrants = autonomous, best-effort safety; incumbents = mid/mid;
+<span style="color:var(--green)">us = autonomous + SIL-gated architecture (Stage 17)</span> — unoccupied, but ours only
+on spec until Stage 17 ships. [qualitative]</div>
+</div>
+
+<h2 id="s5">5. SWOT (June 2026)</h2>
+<div class="swot">
+<div class="card good"><h3>Strengths</h3><ul>
+<li>Only profile combining vendor-neutrality + signed evidence + functional safety + PQC + causal self-healing (spec; §3 matrix)</li>
+<li>Real, honest build discipline: 2 trained models with cards/metrics, 40+ passing tests, append-only audit machinery, baseline 441→402</li>
+<li>Standards-deep (VDA 5050, OPC UA, Sparkplug B, ISA-95, ISO 10218/IEC 61508 mapped)</li>
+<li>Zero-cost stack = zero burn while building (Groq free/Ollama, OSS infra)</li>
+</ul></div>
+<div class="card bad"><h3>Weaknesses</h3><ul>
+<li><strong>Spec-deep, code-thin</strong> (CTO #1): self-healing engine, safety wrapper, evidence pipeline all PLANNED</li>
+<li>Pre-revenue, no install base, no reference pilot; models trained on proxy datasets (G-035)</li>
+<li>Solo-builder execution bandwidth vs 25-stage roadmap</li>
+<li>No certification yet (Stage 23 dry-run is the earliest credible claim)</li>
+</ul></div>
+<div class="card good"><h3>Opportunities</h3><ul>
+<li>Fixed Dec-2027 Annex III date = 18-month "evidence-ready" sales runway with legal certainty [5][6]</li>
+<li>Galileo exit removed the independent reliability leader; OT white space widened [7]</li>
+<li>OpenRobOps/Open-RMF commoditize the layer <em>below</em> us — free distribution rails to integrate [4]</li>
+<li>Mixed humanoid+AMR fleets (GXO, Hyundai) need neutral trust layers OEMs won't build [15][16]</li>
+<li>Physical-AI capital forming: BMW i Ventures $300M, KOMPAS €160M [18]</li>
+</ul></div>
+<div class="card bad"><h3>Threats</h3><ul>
+<li>Siemens+NVIDIA agentic bundling accelerating (Erlangen blueprint 2026) [12][13]</li>
+<li>Cisco could extend Galileo toward OT faster than we ship Stages 11–20</li>
+<li>Agentic entrants (Ati, GRID) could add a compliance story before our slice ships</li>
+<li>Further EU softening could dilute the compliance leg (mitigation: lead with self-healing + neutrality + safety)</li>
+<li>Free-tier LLM dependency (Groq) is a single point of failure until Ollama fallback is proven in Stage 11</li>
+</ul></div>
+</div>
+
+<h2 id="s6">6. Positioning &amp; white-space</h2>
+<div class="card">
+<p><strong>Positioning statement (PRD v3 §1):</strong> <em>"The vendor-neutral trust and self-healing layer for mixed
+robot/OT fleets — every autonomous decision predicted, causally explained, safety-gated, and cryptographically provable —
+running above whatever fleet manager you already have, open source, evidence-ready for the EU AI Act's December 2027 date."</em></p>
+<ul>
+<li><strong>Against incumbents</strong> (Siemens/NVIDIA, Rockwell): we are the open, neutral, inspectable alternative — and we integrate their equipment rather than displace it.</li>
+<li><strong>Against fleet platforms</strong> (InOrbit/OpenRobOps, Open-RMF, OEM platforms): we are the layer above — they move robots; we make the decisions trustworthy, explainable, and provable. Integrate, don't fight.</li>
+<li><strong>Against agent-governance</strong> (Cisco/Galileo): we are the industrial-grade version — OT standards, SIL-gated actuation, signed evidence chains, crypto-agility; not dashboards for software agents.</li>
+<li><strong>Against new entrants</strong> (Ati, GRID): we are the one with a regulator-shaped spine — evidence, safety, and crypto are architecture, not roadmap slideware.</li>
+</ul>
+<p><strong>White-space (qualitative):</strong> "autonomous + certifiable + neutral + provable" remains a four-way
+intersection nobody else occupies (§4 maps). The June refresh shows the single-axis players getting stronger on their
+single axes — which makes the intersection <em>more</em> distinctive, provided the build catches up.</p>
+</div>
+
+<h2 id="s7">7. Gap analysis — what adoption requires vs what exists</h2>
+<table>
+<tr><th>Adoption requirement (evidence)</th><th>What exists today</th><th>Gap → where it closes</th></tr>
+<tr><td>Working closed-loop autonomy demo (pilot gate; ~25% of failures = unrealistic expectations [21])</td><td><span class="tag built">BUILT</span> predict (XGBoost PR-AUC 0.847; LSTM demand) on live sim</td><td><span class="tag planned">Stage 6</span> Vertical Slice v0: predict→diagnose→intervene, measured A/B</td></tr>
+<tr><td>WMS/robot state coherence (top failure cause [21])</td><td><span class="tag partial">PARTIAL</span> canonical incident envelope + Redis/WS fan-out</td><td><span class="tag planned">Stages 13/15</span> CDC ingestion + ISA-95 OT/IT bridge</td></tr>
+<tr><td>Integration cost ≤ weeks, not 50–100% of hardware cost [22]</td><td><span class="tag partial">PARTIAL</span> compose-up deploy; Postgres-table integration</td><td><span class="tag planned">Stages 15/16</span> VDA 5050 / OPC UA / Sparkplug adapters + OpenRobOps/Open-RMF integration (ledgered)</td></tr>
+<tr><td>Auditable decisions for EU AI Act Art. 12 [5]</td><td><span class="tag planned">PLANNED</span> schema exists (audit_chain)</td><td><span class="tag planned">Stages 13.5/19</span> ML-DSA-signed chain + Annex IV pack generator</td></tr>
+<tr><td>Actuator safety story (no pilot without it)</td><td><span class="tag planned">PLANNED</span> contract DSL specced (KB_17)</td><td><span class="tag planned">Stage 17</span> LLM-planner/SIL-executor wrapper</td></tr>
+<tr><td>Real-telemetry models (proxy brains are a demo ceiling)</td><td><span class="tag partial">PARTIAL</span> honest proxy models, carded (G-035)</td><td><span class="tag planned">Stage 22</span> pilot re-fit</td></tr>
+<tr><td>Reference pilot + published case (fundability gate, §10)</td><td>—</td><td><span class="tag planned">Stage 22</span> warehouse wedge pilot</td></tr>
+</table>
+
+<h2 id="s8">8. Problem → solution fit matrix</h2>
+<table>
+<tr><th>Industry problem (sourced)</th><th>Who feels it</th><th>Current alternative</th><th>Our answer</th><th>Status</th></tr>
+<tr><td>Labor shortage: 76% of supply-chain ops impacted; 41% can't retain warehouse staff [9]</td><td>Warehouse/3PL ops</td><td>More hiring spend; single-vendor automation islands</td><td>Cross-domain autonomous coordination that raises throughput without headcount</td><td><span class="tag partial">PARTIAL</span> (sim-proven; pilot pending)</td></tr>
+<tr><td>Robot fleets from N vendors don't interoperate; "long way to go" on standards [23]</td><td>Ops + OT integrators</td><td>One fleet manager per vendor; manual deconfliction</td><td>Neutral control plane over VDA 5050/MassRobotics/Open-RMF; integrates OpenRobOps</td><td><span class="tag planned">PLANNED</span> Stage 16</td></tr>
+<tr><td>Integration overhead 50–100% of hardware cost; WMS state divergence kills deployments [21][22]</td><td>CFO + integrators</td><td>Custom SI projects per site</td><td>Standards adapters + canonical envelope + CDC; documented 90-day integration playbook (PRD v3 §15)</td><td><span class="tag partial">PARTIAL</span> Stages 13/15/16</td></tr>
+<tr><td>Downtime: unplanned failures; PdM adoption &gt;45% but black-box mistrust [11]</td><td>Maintenance + ops</td><td>Sensor-vendor PdM (opaque), reactive repair</td><td>Causal self-healing loop: predict → root-cause → verify → no-interruption intervention, explainable + signed</td><td><span class="tag partial">PARTIAL</span> predict BUILT; loop = Stages 6–11</td></tr>
+<tr><td>EU AI Act high-risk evidence burden from Dec 2027 [5][6]</td><td>Compliance officers</td><td>Consulting projects; manual doc packs</td><td>Append-only ML-DSA-signed audit chain; Annex IV pack ≤60s (target)</td><td><span class="tag planned">PLANNED</span> Stages 13.5/19</td></tr>
+<tr><td>10–20yr equipment lifecycles vs RSA/ECC deprecation by 2030–2035 [24]</td><td>Security architects</td><td>Ignore until forced</td><td>FIPS 203/204-aligned PQC now; KeyProvider boundary for HSM/parameter swap (CNSA-2.0-aware, not NSS-claimed)</td><td><span class="tag planned">PLANNED</span> Stages 13.5/18</td></tr>
+<tr><td>Agent decisions nobody can explain to an auditor (XAI now expected [11])</td><td>Everyone above</td><td>Trust-me dashboards</td><td>Counterfactual causal explanations bound to the signed decision record</td><td><span class="tag planned">PLANNED</span> Stages 8/10</td></tr>
+</table>
+
+<h2 id="s9">9. Adoption &amp; integration path into real companies</h2>
+<div class="card">
+<ol>
+<li><strong>Land (OSS, $0):</strong> ops/OT engineer deploys via Docker Compose next to the existing WMS/fleet manager; reads existing Postgres/MQTT topics; shadow-mode only (observe + predict, no actuation). Zero procurement friction — this is why open source is the GTM, not just a license.</li>
+<li><strong>Prove (30–90 days, shadow → advisory):</strong> the control plane predicts failures/disruptions and shows the counterfactual ("we would have prevented X"). The Stage 6 slice A/B metric is exactly this artifact. Calibrated against the 3–6-month ramp reality [22] — we sit in software, not on the floor, so our ramp is shorter than hardware's.</li>
+<li><strong>Pilot (paid, 3–6 months):</strong> advisory → gated actuation on ONE workflow (e.g., preemptive maintenance dispatch) under the safety wrapper; evidence pack generated weekly for the compliance office. Priced against the integration-overhead baseline ($30–150k typical [22]).</li>
+<li><strong>Expand (SI channel):</strong> systems integrators carry it — they keep their services revenue (we reduce their per-site custom code, not their business); reference architecture + certification dry-run (Stage 23) unlocks regulated verticals.</li>
+</ol>
+<p class="sub">Channel logic [qualitative]: integrators are the buyers' trusted hands (pilot budgets already allocate ~20% to integration software [22]); an OSS control plane that standardizes their glue work converts them from gatekeepers into distribution.</p>
+</div>
+
+<h2 id="s10">10. Startup viability &amp; fundability — honest verdict</h2>
+<div class="card verdict">
+<p><strong>Is this startup-worthy? Yes — conditionally.</strong> Evidence for the lane:</p>
+<ul>
+<li><strong>Comparable exits/raises exist:</strong> Galileo ($68M raised → Cisco exit, 2026) [7][17]; InOrbit $10M Series A on managed-fleet traction [4a]; physical-AI funds actively deploying (BMW i Ventures $300M; KOMPAS €160M) [18].</li>
+<li><strong>The category timing is right:</strong> A2A 150+ orgs and MCP ~97M installs make the protocol bet mainstream [25][26]; Dec-2027 gives compliance buying a date; humanoid mixing makes neutrality urgent [15][16].</li>
+<li><strong>Open-core works in this domain:</strong> PickNik MoveIt/MoveIt Pro is the precedent; ROS 2 at ~58% of downloads shows OSS is the industrial default [18b].</li>
+</ul>
+<p><strong>Conditions (what makes it NOT fundable today):</strong></p>
+<ul>
+<li>No working closed loop → <strong>Stage 6 slice is the demo that changes the conversation.</strong></li>
+<li>No reference pilot → Stage 22; everything before it is a story.</li>
+<li>Proxy-trained models → must re-fit on real telemetry at pilot (G-035) before any production claim.</li>
+<li>One-person execution against a 25-stage roadmap → the de-risked sequencing (PRD v3 §18) and the freeze-spec discipline are the mitigation, not a solution. A founding team / first hires would be the actual fix [qualitative].</li>
+</ul>
+<p><strong>Where we will NOT win (unchanged from 2026-05-31, reconfirmed):</strong> out-distributing Siemens/Rockwell;
+beating sensor-PdM vendors on hardware; winning pure fleet orchestration (now a free commodity). The winning outcome
+remains: the trusted neutral layer that regulated, multi-vendor operators adopt — leading to SI-channel revenue,
+strategic partnership, or acquisition by an incumbent that needs the trust stack.</p>
+</div>
+
+<h2 id="s11">11. What must still be implemented (viability-ordered)</h2>
+<table>
+<tr><th>#</th><th>Capability</th><th>Why it gates viability</th><th>Stage / ledger</th></tr>
+<tr><td>1</td><td><strong>Vertical Slice v0</strong>: predict→diagnose→intervene closed loop on the machine-failure scenario, measured A/B</td><td>Converts "spec-deep" into a demo; CTO #1's explicit gate; the fundability artifact</td><td><strong>Stage 6</strong> (new)</td></tr>
+<tr><td>2</td><td>Durable agent runtime + HITL + Ollama fallback proven</td><td>Production-slice credibility; free-cost resilience</td><td>Stage 11 (G-014, G-025, G-026)</td></tr>
+<tr><td>3</td><td>Signed audit chain + Annex IV generator</td><td>The compliance product; Dec-2027 runway monetization</td><td>Stages 13.5, 19 (G-028)</td></tr>
+<tr><td>4</td><td>OT/IT bridge + VDA 5050 adapter + OpenRobOps/Open-RMF integration</td><td>Attacks the 50–100% integration tax; rides commodity rails</td><td>Stages 15, 16 (+ new ledger row for OpenRobOps integration)</td></tr>
+<tr><td>5</td><td>Functional safety wrapper</td><td>No actuating pilot without it</td><td>Stage 17 (G-030 adjacent)</td></tr>
+<tr><td>6</td><td>Red-team evals to (ex-)Galileo depth</td><td>Reliability proof, now vs Cisco-grade competition</td><td>Stage 20</td></tr>
+<tr><td>7</td><td>Reference pilot on real telemetry (re-fit brains)</td><td>The only evidence buyers and investors fully credit</td><td>Stage 22 (G-035)</td></tr>
+<tr><td>8</td><td>Humanoid-fleet adapter surface (Arc/Orbit era)</td><td>Mixed-fleet neutrality claim stays current</td><td>NEW ledger row → post-Stage-16</td></tr>
+</table>
+
+<h2 id="s12">12. Sources</h2>
+<ol class="src">
+<li id="r1">[1] Fortune Business Insights — Warehouse Robotics Market: <a href="https://www.fortunebusinessinsights.com/warehouse-robotics-market-108713">fortunebusinessinsights.com</a></li>
+<li>[2] MarketsandMarkets — AMR Market: <a href="https://www.marketsandmarkets.com/Market-Reports/autonomous-mobile-robots-market-107280537.html">marketsandmarkets.com</a></li>
+<li>[3] Grand View Research — AMR Market: <a href="https://www.grandviewresearch.com/industry-analysis/autonomous-mobile-robots-market">grandviewresearch.com</a>; MarketIntelo — Warehouse AMR: <a href="https://marketintelo.com/report/autonomous-mobile-robot-amr-for-warehouse-market">marketintelo.com</a></li>
+<li>[4] Robotics 24/7 — InOrbit unveils OpenRobOps: <a href="https://www.robotics247.com/article/inorbit-unveils-openrobops-open-source-fleet-manager-platform">robotics247.com</a>; [4a] BusinessWire — InOrbit Series A: <a href="https://www.businesswire.com/news/home/20250930673347/en/">businesswire.com</a>; [4b] Intel Market Research — AMR Fleet Mgmt Software: <a href="https://www.intelmarketresearch.com/autonomous-mobile-robot-fleet-management-software-market-27822">intelmarketresearch.com</a></li>
+<li>[5] Consilium — AI: Council and Parliament agree (2026-05-07): <a href="https://www.consilium.europa.eu/en/press/press-releases/2026/05/07/artificial-intelligence-council-and-parliament-agree-to-simplify-and-streamline-rules/">consilium.europa.eu</a></li>
+<li>[6] Gibson Dunn — EU AI Act Omnibus Agreement: <a href="https://www.gibsondunn.com/eu-ai-act-omnibus-agreement-postponed-high-risk-deadlines-and-other-key-changes/">gibsondunn.com</a>; Covington — Timeline Relief: <a href="https://www.insideprivacy.com/artificial-intelligence/eu-ai-act-update-timeline-relief-targeted-simplification-and-new-prohibitions/">insideprivacy.com</a></li>
+<li>[7] Cisco — Intent to acquire Galileo: <a href="https://blogs.cisco.com/news/cisco-announces-the-intent-to-acquire-galileo">blogs.cisco.com</a></li>
+<li>[8] The Business Research Company — AI-Driven PdM: <a href="https://www.thebusinessresearchcompany.com/report/artificial-intelligence-ai-driven-predictive-maintenance-global-market-report">thebusinessresearchcompany.com</a></li>
+<li>[9] SellersCommerce — Warehouse Automation Statistics 2026 (citing Descartes, MHI 2025): <a href="https://www.sellerscommerce.com/blog/warehouse-automation-statistics/">sellerscommerce.com</a></li>
+<li>[10] The Network Installers — Warehouse Automation Statistics: <a href="https://thenetworkinstallers.com/blog/warehouse-automation-statistics/">thenetworkinstallers.com</a></li>
+<li>[11] iFactory — Predictive Maintenance 2026: <a href="https://ifactoryapp.com/blog/predictive-maintenance-2026-ai-factory-downtime">ifactoryapp.com</a></li>
+<li>[12] Siemens Press — Siemens and NVIDIA Industrial AI Operating System: <a href="https://press.siemens.com/global/en/pressrelease/siemens-and-nvidia-expand-partnership-build-industrial-ai-operating-system">press.siemens.com</a></li>
+<li>[13] NVIDIA Newsroom — Siemens partnership: <a href="https://nvidianews.nvidia.com/news/siemens-and-nvidia-expand-partnership-industrial-ai-operating-system">nvidianews.nvidia.com</a></li>
+<li>[14] NVIDIA Blog — Hannover Messe 2026 (PepsiCo case): <a href="https://blogs.nvidia.com/blog/ai-manufacturing-hannover-messe/">blogs.nvidia.com</a></li>
+<li>[15] Boston Dynamics — Enterprise Robotics, Redefined (Orbit + Atlas, Hyundai RMAC): <a href="https://bostondynamics.com/blog/enterprise-robotics-redefined/">bostondynamics.com</a></li>
+<li>[16] iFactory — Humanoid/Quadruped 2026 Deployment Guide (Agility Arc, GXO): <a href="https://ifactoryapp.com/industries/manufacturing-plant/humanoid-quadruped-robots-manufacturing-plant-2026-guide">ifactoryapp.com</a>; Figure — Ramping Figure 03: <a href="https://www.figure.ai/news/ramping-figure-03-production">figure.ai</a></li>
+<li>[17] PR Newswire — Galileo $45M Series B: <a href="https://www.prnewswire.com/news-releases/galileo-raises-45m-series-b-funding-to-bring-evaluation-intelligence-to-generative-ai-teams-everywhere-302276383.html">prnewswire.com</a></li>
+<li>[18] Robotics &amp; Automation News — Open-source robotics communities (BMW i Ventures $300M, KOMPAS €160M): <a href="https://roboticsandautomationnews.com/2026/05/27/the-power-of-the-open-source-community-in-robotics-collaboration-and-shared-innovation/101927/">roboticsandautomationnews.com</a>; [18b] Hackster — Open Source Robotics Startups (PickNik, ROS metrics): <a href="https://www.hackster.io/news/the-most-promising-open-source-robotics-startups-in-2025-c576072e1e07">hackster.io</a></li>
+<li>[19] Ati Robotics — Agentic Material Orchestration: <a href="https://www.atirobotics.ai/">atirobotics.ai</a></li>
+<li>[20] Delight — Agentic AI companies 2026 (General Robotics GRID): <a href="https://delight.ai/blog/industry/agentic-ai-companies">delight.ai</a>; Landbase — Warehouse automation companies (Locus): <a href="https://www.landbase.com/blog/fastest-growing-warehouse-automation">landbase.com</a></li>
+<li>[21] Robotomated — Robot Deployment Failure Reasons: <a href="https://robotomated.com/learn/getting-started/robot-deployment-failure-reasons">robotomated.com</a></li>
+<li>[22] Robotomated — Warehouse Automation Budget Guide: <a href="https://robotomated.com/learn/cost/warehouse-automation-budget-guide">robotomated.com</a></li>
+<li>[23] SYNAOS — VDA 5050, MassRobotics, Open-RMF: <a href="https://www.synaos.com/en/blog/vda-5050-massrobotics-open-rmf">synaos.com</a>; SupplyChainBrain — Customer-Centered Warehouse Automation: <a href="https://www.supplychainbrain.com/articles/43304-the-customer-centered-path-to-warehouse-automation">supplychainbrain.com</a></li>
+<li>[24] QuSecure — CNSA 2.0 Requirements &amp; Timelines: <a href="https://www.qusecure.com/cnsa-2-0-pqc-requirements-timelines-federal-impact/">qusecure.com</a>; NIST IR 8547: <a href="https://csrc.nist.gov/pubs/ir/8547/ipd">csrc.nist.gov</a></li>
+<li>[25] Linux Foundation — A2A surpasses 150 organizations: <a href="https://www.linuxfoundation.org/press/a2a-protocol-surpasses-150-organizations-lands-in-major-cloud-platforms-and-sees-enterprise-production-use-in-first-year">linuxfoundation.org</a></li>
+<li>[26] AI2Work — MCP hits 97M installs under Linux Foundation: <a href="https://ai2.work/blog/model-context-protocol-hits-97m-installs-as-linux-foundation-takes-over">ai2.work</a></li>
+</ol>
+
+<div class="footer">
+Generated 2026-06-11 as part of the Strategic Product Reset (ADR: <code>compliance/decision-logs/2026-06-11_strategic_product_reset.md</code>).
+Honesty notes: market figures are third-party analyst estimates whose scopes differ — treat as ranges; perceptual-map positions and channel
+logic are the author's qualitative judgment, labeled as such; build-status tags (BUILT/PARTIAL/PLANNED) reflect the repository at 2026-06-11
+(Stages 0–5 closed, audit baseline 402); this document states where the product will NOT win (§10). Research trail: <code>research/initial-research.md §14</code>.
+</div>
+</div>
+</body>
+</html>

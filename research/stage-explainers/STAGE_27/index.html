@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stage 27 — Resilience &amp; Anti-Fragility (SPIFFE Identity · Durable Execution · Chaos)</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--border:#30363d;--text:#e6edf3;
+        --muted:#9da7b3;--accent:#58a6ff;--green:#3fb950;--amber:#d29922;--red:#f85149;--purple:#bc8cff}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.65}
+  .wrap{max-width:1060px;margin:0 auto;padding:32px 24px 80px}
+  header{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:28px}
+  h1{font-size:1.5rem;margin:0 0 8px} h2{font-size:1.2rem;margin:34px 0 12px;padding-top:18px;border-top:1px solid var(--border);color:var(--accent)}
+  .sub{color:var(--muted);font-size:.95rem}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.83rem}
+  th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--accent)} tr:nth-child(even) td{background:var(--panel)}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin:14px 0}
+  .verdict{border-left:4px solid var(--accent)} .good{border-left:4px solid var(--green)} .warn{border-left:4px solid var(--amber)}
+  code{background:var(--panel2);padding:1px 6px;border-radius:4px;font-size:.85em}
+  .tag{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.72rem;font-weight:600;margin-right:4px}
+  .ok{background:#1f3d2b;color:var(--green)} .todo{background:#2a2a3d;color:var(--purple)} .flag{background:#3d2a1f;color:var(--amber)}
+  ul{padding-left:22px} li{margin:5px 0} a{color:var(--accent)} .big{font-size:1.05rem;font-weight:700}
+  .green{color:var(--green)} .amber{color:var(--amber)}
+  .kpi{display:inline-block;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;margin:5px 8px 5px 0;text-align:center}
+  .kpi b{display:block;font-size:1.3rem;color:var(--accent)} .kpi span{font-size:.72rem;color:var(--muted)}
+  .footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Stage 27 — Resilience &amp; Anti-Fragility <span class="tag ok">BUILD INCREMENT</span></h1>
+  <div class="sub">SPIFFE/SPIRE rotating workload identity + SVID-mTLS A2A authentication + durable-execution
+  primitives + chaos drills — the Kagenti cloud-native resilience pattern on our PQC/evidence spine · 2026-07-04 ·
+  research §38 · closes the go-live identity gaps R4/G-4.</div>
+</header>
+
+<div class="card verdict">
+<p class="big">The A2A boundary is now AUTHENTICATED, not just confined: a real SVID-mTLS handshake admits a valid
+peer and refuses an anonymous one (R4/G-4 closed). External effects are at-most-once + circuit-breakered + saga-
+compensated. Every breaker trip is a signed audit row; the chain still verifies. Nothing fabricates when a
+dependency is down — it degrades honestly and self-recovers.</p>
+</div>
+
+<div>
+  <span class="kpi"><b>R4/G-4</b><span>A2A authentication CLOSED</span></span>
+  <span class="kpi"><b>24</b><span>new tests pass</span></span>
+  <span class="kpi"><b>SVID</b><span>rotated: new serial, same identity</span></span>
+  <span class="kpi"><b>3</b><span>signed breaker transitions, chain verifies</span></span>
+  <span class="kpi"><b>+2</b><span>free OSS deps (spiffe, spiffe-tls)</span></span>
+  <span class="kpi"><b>364</b><span>audit baseline held</span></span>
+</div>
+
+<h2>1. Dual-identity model (the Kagenti pattern on our spine)</h2>
+<div class="card good">
+<p>Two identities, each doing exactly what it is for:</p>
+<table>
+<tr><th>identity</th><th>purpose</th><th>mechanics</th></tr>
+<tr><td><b>SPIFFE X509-SVID</b></td><td>TRANSPORT authentication — proves <em>who is calling</em> on the wire</td><td>short-lived (1h TTL), SPIRE-rotated; mutual TLS; the peer's SPIFFE ID is the authenticated identity. <code>docker/docker-compose.spire.yml</code> (server+agent, join-token attestation, trust domain <code>ai-agent.local</code>) + <code>backend/security/spiffe_identity.py</code></td></tr>
+<tr><td><b>ML-DSA-65</b></td><td>EVIDENCE signing — proves <em>this agent produced this record</em></td><td>post-quantum, long-trust: audit rows, agent cards, ADRs (Stage 13.5+)</td></tr>
+</table>
+<p>The AgentCard binds both (<code>a2a/agent_card_cnstyle.py</code>: SPIFFE ID + ML-DSA public key in one signed
+card) — so a consumer verifies transport identity (SVID) AND evidence signatures (ML-DSA) belong to the same agent,
+and can discover our agent as an LF A2A-spec card OR a Kagenti AgentCard-CRD (channel-fit into CNCF / IBM watsonx
+Orchestrate).</p>
+</div>
+
+<h2>2. The R4/G-4 closure — verified end-to-end</h2>
+<div class="card good">
+<p>Before Stage 27 the A2A endpoint was RBAC-<em>confined</em> but not <em>authenticated</em> — an anonymous caller
+reached the read-only capability. Now (<code>a2a/server.py</code>): the verified client cert (<code>X-Forwarded-Client-Cert</code>,
+the mesh convention) yields the peer's SPIFFE ID, trust-domain/allowlist-checked, and that becomes the authenticated
+<code>peer_id</code> for governance. Proven with a REAL SPIRE-issued SVID and a genuine mutual-TLS handshake:</p>
+<ul>
+<li><span class="tag ok">admitted</span> a valid in-domain SVID authenticates and proceeds into the governance layer;</li>
+<li><span class="tag flag">rejected</span> a foreign-trust-domain SVID (<code>spiffe://evil.example/…</code>) is refused;</li>
+<li><span class="tag flag">rejected</span> an anonymous client (no cert) fails the handshake server-side (<code>CERT_REQUIRED</code>) — no peer identity is established.</li>
+</ul>
+<p class="sub">Honest scope: this is load-bearing on the mTLS path (an mTLS-terminating front / sidecar supplies the
+cert). Without a front, the endpoint keeps the Stage-24 confinement fallback (anonymous L0, read-only) — named as
+weaker. Istio Ambient mesh mTLS = pilot/K8s.</p>
+</div>
+
+<h2>3. Durable-execution primitives (external effects don't double-act or cascade)</h2>
+<table>
+<tr><th>primitive</th><th>guarantee</th><th>honest mechanics</th></tr>
+<tr><td><code>EffectLedger</code></td><td>at-most-once external effects</td><td>PG claim table (key PK), DB-durable across workers; replay returns the RECORDED outcome; a failed effect releases → retryable; stale RUNNING claims reclaimable after a lease. No DB → in-process fallback (single-process only, said so)</td></tr>
+<tr><td><code>CircuitBreaker</code></td><td>graceful degradation + self-recovery</td><td>CLOSED/OPEN/HALF_OPEN per dependency; OPEN raises <code>CircuitOpenError</code> — HONEST unavailability, <b>never a fabricated fallback</b>; HALF_OPEN probe auto-recovers; every transition = a signed <code>circuit.transition</code> audit row</td></tr>
+<tr><td><code>Saga</code></td><td>partial failures unwind cleanly</td><td>ordered steps + reverse-order compensation; per-step idempotency keys (a retry never re-runs a completed step); a compensation past its retry budget surfaces <code>SagaStuckError</code> naming what owes manual intervention — <b>never silently swallowed</b></td></tr>
+</table>
+
+<h2>4. Drills (running it proves it)</h2>
+<div class="card good">
+<ul>
+<li><b>SVID rotation drill</b> (<code>scripts/spire/rotate-svid-drill.py</code>): cert serial changed
+(105164974… → 234666654…) with the SAME SPIFFE identity — zero-downtime rotating workload identity.</li>
+<li><b>Circuit-breaker chaos drill</b> (<code>scripts/chaos/circuit-breaker-drill.py</code>): a flaky dependency
+tripped the breaker OPEN after 3 real failures (1 call blocked WITHOUT fabrication), then recovered → HALF_OPEN
+probe → CLOSED; 3 signed transitions; <b>audit chain verifies (10,070 rows, exit 0)</b>.</li>
+</ul>
+</div>
+
+<h2>5. Also fixed — G-083 (Stage-26 review tail)</h2>
+<div class="card warn">
+<p>The disruption monitor's <code>_raised</code> de-dup never reset, so a (kind,subject) channel raised at most one
+incident per monitor lifetime — the first episode deafened it forever. Fixed: <code>EPISODE_QUIET_CHECKS</code>
+expiry — an episode closes after N consecutive quiet checks, so the channel re-raises for a genuinely new episode.
+19/19 supply-chain tests still green.</p>
+</div>
+
+<h2>6. Honesty notes</h2>
+<div class="card warn">
+<ul>
+<li><b>SPIRE overlay is dev-scoped</b> — join-token attestation + <code>insecure_bootstrap</code>; production needs proper node attestation. The dual-identity model + <code>authenticate_peer</code> gate are deployment-agnostic; mesh mTLS is pilot/K8s.</li>
+<li><b>The AgentCard export is an interop shaper</b>, not a running Kagenti deployment (that needs a K8s cluster + the Kagenti operator).</li>
+<li><b>Durable primitives are proven + the pattern is set</b>; wiring them into every existing effect call-site is incremental (actuator/order paths are the priority next).</li>
+<li><b>Temporal/Restate</b> (durable-workflow engines) were considered and ledgered as a pilot-scale option — the free/local need is the primitive set, built in-house against our audit/honesty constraints.</li>
+</ul>
+</div>
+
+<div class="footer">
+Generated 2026-07-04 · Stage 27 build increment · research §38 · every number above was produced by a live command
+this session (SVID serials, test counts, breaker rows, chain verify) — none invented. New deps: spiffe 0.3.0,
+spiffe-tls 0.4.0 (Apache-2.0). Audit baseline held at 364.
+</div>
+</div>
+</body>
+</html>

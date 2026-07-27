@@ -1,0 +1,228 @@
+# Docker Compose for AI Embodied Agent Platform
+#
+# Stage 1 (2026-05-11) sweep:
+#   - Every hardcoded credential replaced with ${VAR} references read from
+#     .env.local at the repo root. See .env.example for the schema.
+#   - Postgres runs with wal_level=logical so Stage 13's Supabase Realtime
+#     CDC works without restart.
+#   - A short-lived `migrate` service runs `alembic upgrade head` against
+#     postgres on first boot; the backend service only starts after the
+#     migration completes successfully.
+#   - The self-hosted Supabase stack (Realtime / Studio / Meta / REST) is
+#     intentionally NOT yet added. See compliance/decision-logs/
+#     2026-05-11_stage_01_close.md for the rationale and rollout plan.
+
+services:
+  neo4j:
+    image: neo4j:5.15-community
+    container_name: ai-agent-neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=${NEO4J_USER}/${NEO4J_PASSWORD}
+      # Stage 26 (2026-07-03): graph-data-science REMOVED — unused by any backend code (verified: zero gds.*
+      # references), and its ~500MB jar re-download on every container start crash-looped Neo4j on slow networks
+      # (observed: 100+ restarts, container never reached healthy). Re-add when a stage actually uses GDS.
+      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
+      - NEO4J_dbms_security_procedures_allowlist=apoc.*
+    volumes:
+      - neo4j-data:/data
+      - neo4j-logs:/logs
+      - neo4j-plugins:/plugins
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7474"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - ai-agent-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ai-agent-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - ai-agent-network
+
+  postgres:
+    # Stage 12: pgvector image (PG 15 — same major as the previous postgres:15-alpine, so the existing data volume
+    # is preserved on swap) provides the `vector` extension the episodic memory layer needs (KB_14 / migration 0005).
+    # Stage 25 (G-060): pgaudit IS enabled on the live container (apt postgresql-15-pgaudit +
+    # shared_preload_libraries='pgaudit' + pgaudit.log='write, ddl, role' — persisted in postgresql.auto.conf on the
+    # data volume). For container RECREATION use docker/postgres-pgaudit.Dockerfile (bakes the package) and point
+    # `image:` at the built tag. pgaudit = DB-level session audit (defence-in-depth vs direct SQL); the app-level
+    # hash-chained `audit_chain` + its immutability triggers remain the EU-AI-Act Art-12 evidence (migration 0003).
+    image: pgvector/pgvector:pg15
+    container_name: ai-agent-postgres
+    ports:
+      - "5432:5432"
+    # wal_level=logical is required by Supabase Realtime CDC (Stage 13).
+    # Setting it now means no Postgres restart later. max_wal_senders /
+    # max_replication_slots stay at defaults; bump them when Realtime
+    # lands.
+    #
+    # Stage 21 (DR/PITR — research §31.1): the ACTIVE DR path is the logical dump + tested restore
+    # (`scripts/backup/backup-postgres.sh` + `scripts/restore/restore-verify.sh`) and a base backup
+    # (`scripts/backup/pg-basebackup.sh`). Continuous WAL archiving for point-in-time recovery (RPO ≤ 60 s) is
+    # CONFIG-PROVIDED but left OFF by default: enabling `archive_mode=on` with an unreachable `archive_command`
+    # makes PG stop recycling WAL → the disk fills → outage. To enable PITR at the pilot, mount a writable archive
+    # volume and add to the command below (then `restart`):
+    #   - -c
+    #   - archive_mode=on
+    #   - -c
+    #   - "archive_command=test ! -f /wal-archive/%f && cp %p /wal-archive/%f"
+    #   - -c
+    #   - archive_timeout=60          # forces a WAL switch every 60 s -> caps RPO at ~60 s
+    # and add a `- pg-wal-archive:/wal-archive` volume. See compliance/dr-runbook.md §2/§5.
+    command:
+      - postgres
+      - -c
+      - wal_level=logical
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - ai-agent-network
+
+  # Short-lived init container: runs `alembic upgrade head` and exits.
+  # Backend `depends_on` this with condition: service_completed_successfully
+  # so a failed migration blocks API startup.
+  migrate:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: ai-agent-migrate
+    working_dir: /app
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    volumes:
+      - ../backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - ai-agent-network
+
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: ai-agent-mqtt
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mqtt-data:/mosquitto/data
+      - mqtt-logs:/mosquitto/log
+    restart: unless-stopped
+    networks:
+      - ai-agent-network
+
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: ai-agent-backend
+    ports:
+      - "8000:8080"
+    environment:
+      - DEBUG=${DEBUG}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - SIMULATION_MODE=${SIMULATION_MODE}
+      - MOCK_ROBOT_COUNT=${MOCK_ROBOT_COUNT}
+      - MOCK_STAGE_COUNT=${MOCK_STAGE_COUNT}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=${NEO4J_USER}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - SUPABASE_URL=${SUPABASE_URL:-}
+      - SUPABASE_KEY=${SUPABASE_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY:-}
+      - MQTT_BROKER_HOST=mqtt
+      - MQTT_BROKER_PORT=1883
+    volumes:
+      - ../backend:/app
+      - model-cache:/app/models
+    depends_on:
+      neo4j:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - ai-agent-network
+
+  simulation:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.simulation
+    container_name: ai-agent-simulation
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=${NEO4J_USER}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - SIMULATION_SPEED=1.0
+      - SCENARIO_MODE=problem
+    volumes:
+      - ../backend:/app
+    depends_on:
+      - redis
+      - neo4j
+    restart: unless-stopped
+    networks:
+      - ai-agent-network
+
+networks:
+  ai-agent-network:
+    driver: bridge
+
+volumes:
+  neo4j-data:
+  neo4j-logs:
+  neo4j-plugins:
+  redis-data:
+  postgres-data:
+  mqtt-data:
+  mqtt-logs:
+  model-cache:
